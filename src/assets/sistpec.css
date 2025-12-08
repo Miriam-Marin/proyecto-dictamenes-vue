@@ -1,0 +1,485 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ===== BARRA DE MENÚ SUPERIOR ===== */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #7a061e;
+  padding: 12px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.navbar-brand {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  line-height: 1.1;
+}
+
+.navbar-brand h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.navbar-brand h2 {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: normal;
+}
+
+.navbar-menu {
+  display: flex;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.navbar-menu a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar-menu a:hover {
+  background-color: #286129;
+}
+
+/* Botón Hamburguesa - Solo visible en móvil/tablet */
+.hamburguesa {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  margin: 0;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+.main-content {
+  margin-top: 70px;
+  padding: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - 70px);
+  box-sizing: border-box;
+}
+
+/* Login Inicio de sesión */
+#login {
+  background-color: rgb(248, 250, 247);
+  padding: 70px 70px;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(8, 8, 8, 0.808);
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+#login input {
+  margin-top: 35px; 
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+#login button {
+  margin-top: 35px; 
+  padding: 12px;
+  width: 100%;
+  background-color: #7a061e;
+  color: rgb(247, 243, 243);
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+#login button:hover {
+  background-color: #286129;
+}
+
+/* Títulos dentro del login */
+.titulo-sistema {
+  background-color: #7a061e;
+  padding: 30px;
+  border-radius: 9px;
+  margin-bottom: 20px;
+  color: rgb(245, 248, 244);
+}
+
+.titulo-sistema h1 {
+  font-size: 32px;
+  margin: 0;
+}
+
+.titulo-sistema h2 {
+  font-size: 32px;
+  margin: 0;
+}
+
+.inicio-sesion h2 {
+  font-size: 25px;
+  margin: 5px 0 0 0;
+  font-weight: normal;
+  margin-bottom: 20px; 
+}
+
+.nombre-sistema h4 {
+  font-size: 23px;
+  margin: 5px 0 0 0;
+  font-weight: normal;
+  color: rgb(21, 20, 21);
+  margin-bottom: 45px; 
+}
+
+.version-sistema h3 {
+  font-size: 12px;
+  margin: 5px 0 0 0;
+  font-weight: normal;
+}
+
+/* ==== Estilos para los paneles ==== */
+#adminPanel,
+#responsablelabPanel,
+#recepcionistaPanel,
+#coordinadorPanel,
+#mvzPanel {
+  max-width: 800px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 40px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #ffffff 0%, #f0f4f7 100%);
+  box-shadow: 0 0 12px rgba(8, 8, 8, 0.808);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* ==== LOGO EN LOS PANELES ==== */
+.logo-panel {
+  width: 120px !important;
+  height: 120px !important;
+  display: block !important;
+  margin: 0 auto 15px !important;
+  object-fit: contain !important;
+  max-width: 120px !important;
+  max-height: 120px !important;
+}
+
+/* Estilos para los títulos dentro de los paneles */
+#adminPanel h2,
+#responsablelabPanel h2,
+#recepcionistaPanel h2,
+#coordinadorPanel h2,
+#mvzPanel h2 {
+  margin: 0 0 15px 0;
+  font-size: 28px;
+  color: #7a061e;
+}
+
+#adminPanel h3,
+#responsablelabPanel h3,
+#recepcionistaPanel h3,
+#coordinadorPanel h3,
+#mvzPanel h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #555;
+  font-weight: normal;
+  line-height: 1.5;
+}
+
+/* ==== Bordes superiores específicos ==== */
+#adminPanel,
+#responsablelabPanel,
+#recepcionistaPanel,
+#coordinadorPanel,
+#mvzPanel {
+  border-top: 25px solid #7a061e;
+}
+
+
+/* ALERTAS GENERALES DEL MÓDULO */
+.modulo-alert {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  border-left: 4px solid transparent;
+}
+
+/* ÉXITO (VERDE CLARO, texto verde oscuro) */
+.modulo-alert--success {
+  background-color: #e5f7ea;      /* verde muy claro */
+  border-left-color: #2e7d32;     /* verde oscuro */
+  color: #1b5e20;                 /* texto verde más profundo */
+}
+
+/* ERROR (ROSA CLARO, borde guinda SISTPEC) */
+.modulo-alert--error {
+  background-color: #fbe9eb;      /* rojito muy suave */
+  border-left-color: #7a061e;     /* guinda institucional */
+  color: #7a061e;                 /* mismo guinda para el texto */
+}
+
+.modulo-alert ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.modulo-alert li {
+  margin-bottom: 4px;
+}
+
+
+/* ========== MEDIA QUERIES RESPONSIVE ========== */
+
+/* TABLET (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .navbar-container {
+    padding: 0 15px;
+  }
+
+  .navbar-menu {
+    gap: 8px;
+  }
+
+  .navbar-menu a {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .main-content {
+    margin-top: 65px;
+  }
+
+  .logo-panel {
+    width: 100px !important;
+    height: 100px !important;
+    max-width: 100px !important;
+    max-height: 100px !important;
+    margin: 0 auto 12px !important;
+  }
+}
+
+/* MÓVIL GRANDE (576px - 768px) */
+@media (max-width: 768px) and (min-width: 577px) {
+  .navbar-container {
+    flex-wrap: wrap;
+  }
+
+  .hamburguesa {
+    display: block;
+  }
+
+  .navbar-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #7a061e;
+    flex-direction: column;
+    padding: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .navbar-menu.active {
+    display: flex;
+  }
+
+  .navbar-menu a {
+    padding: 10px 15px;
+    text-align: center;
+    border-radius: 4px;
+  }
+
+  .main-content {
+    margin-top: 70px;
+    padding: 15px;
+  }
+
+  #login {
+    max-width: 380px;
+    padding: 35px 25px;
+  }
+
+  #adminPanel,
+  #responsablelabPanel,
+  #recepcionistaPanel,
+  #coordinadorPanel,
+  #mvzPanel {
+    padding: 30px 25px;
+    margin: 30px auto;
+  }
+
+  #adminPanel h2,
+  #responsablelabPanel h2,
+  #recepcionistaPanel h2,
+  #coordinadorPanel h2,
+  #mvzPanel h2 {
+    font-size: 26px;
+  }
+
+  .logo-panel {
+    width: 90px !important;
+    height: 90px !important;
+    max-width: 90px !important;
+    max-height: 90px !important;
+    margin: 0 auto 10px !important;
+  }
+}
+
+/* MÓVIL PEQUEÑO (hasta 576px) */
+@media (max-width: 576px) {
+  .navbar {
+    padding: 8px 0;
+  }
+
+  .navbar-container {
+    padding: 0 10px;
+  }
+
+  .navbar-brand h1 {
+    font-size: 20px;
+  }
+
+  .navbar-brand h2 {
+    font-size: 12px;
+  }
+
+  .hamburguesa {
+    display: block;
+    font-size: 20px;
+    padding: 6px 10px;
+  }
+
+  .navbar-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #7a061e;
+    flex-direction: column;
+    padding: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .navbar-menu.active {
+    display: flex;
+  }
+
+  .navbar-menu a {
+    padding: 10px 12px;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .main-content {
+    margin-top: 60px;
+    padding: 10px;
+  }
+
+  #login {
+    max-width: 100%;
+    padding: 30px 20px;
+  }
+
+  .titulo-sistema {
+    padding: 20px 15px;
+  }
+
+  .titulo-sistema h1 {
+    font-size: 20px;
+  }
+
+  #adminPanel,
+  #responsablelabPanel,
+  #recepcionistaPanel,
+  #coordinadorPanel,
+  #mvzPanel {
+    padding: 25px 20px;
+    margin: 20px auto;
+  }
+
+  #adminPanel h2,
+  #responsablelabPanel h2,
+  #recepcionistaPanel h2,
+  #coordinadorPanel h2,
+  #mvzPanel h2 {
+    font-size: 24px;
+  }
+
+  #adminPanel h3,
+  #responsablelabPanel h3,
+  #recepcionistaPanel h3,
+  #coordinadorPanel h3,
+  #mvzPanel h3 {
+    font-size: 16px;
+  }
+
+  .logo-panel {
+    width: 80px !important;
+    height: 80px !important;
+    max-width: 80px !important;
+    max-height: 80px !important;
+    margin: 0 auto 8px !important;
+  }
+
+  /* Bordes más delgados en móvil */
+  #adminPanel,
+  #responsablelabPanel,
+  #recepcionistaPanel,
+  #coordinadorPanel,
+  #mvzPanel {
+    border-top-width: 20px;
+  }
+
+}
