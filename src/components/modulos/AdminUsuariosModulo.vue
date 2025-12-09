@@ -1,397 +1,77 @@
 <template>
-  <!-- Barra de acciones (botones Registrar / Consultar / Editar / Eliminar) -->
-  <section class="modulo-acciones">
-    <span class="modulo-acciones-titulo">Acciones disponibles</span>
+  <!-- CONTENEDOR DEL MÓDULO PARA HACER SCROLL AUTOMÁTICO -->
+  <div ref="moduloRoot">
+    <!-- Barra de acciones (botones Registrar / Consultar / Editar / Eliminar) -->
+    <section class="modulo-acciones">
+      <span class="modulo-acciones-titulo">Acciones disponibles</span>
 
-    <div class="modulo-acciones-botones">
-      <button
-        v-for="accion in accionesUsuarios"
-        :key="accion.id"
-        type="button"
-        class="sistpec-btn-accion"
-        :class="{ active: selectedAction === accion.id }"
-        @click="selectedAction = accion.id"
+      <div class="modulo-acciones-botones">
+        <button
+          v-for="accion in accionesUsuarios"
+          :key="accion.id"
+          type="button"
+          class="sistpec-btn-accion"
+          :class="{ active: selectedAction === accion.id }"
+          @click="selectedAction = accion.id"
+        >
+          {{ accion.label }}
+        </button>
+      </div>
+
+      <!-- Mensaje que cambia según la acción -->
+      <div class="sistpec-info-box">
+        <p class="sistpec-info-text">
+          {{ descripcionAccionActual }}
+        </p>
+      </div>
+    </section>
+
+    <section class="modulo-contenido">
+      <!-- ALERTAS DE ERRORES -->
+      <div
+        v-if="errores.length"
+        class="modulo-alert modulo-alert--error"
       >
-        {{ accion.label }}
-      </button>
-    </div>
-
-    <!-- Mensaje que cambia según la acción -->
-    <div class="sistpec-info-box">
-      <p class="sistpec-info-text">
-        {{ descripcionAccionActual }}
-      </p>
-    </div>
-  </section>
-
-  <section class="modulo-contenido">
-    <!-- ALERTAS DE ERRORES -->
-    <div
-      v-if="errores.length"
-      class="modulo-alert modulo-alert--error"
-    >
-      <ul>
-        <li v-for="(err, index) in errores" :key="index">
-          {{ err }}
-        </li>
-      </ul>
-    </div>
-
-    <!-- ALERTA DE ÉXITO -->
-    <div
-      v-if="mensajeExito"
-      class="modulo-alert modulo-alert--success"
-    >
-      {{ mensajeExito }}
-    </div>
-
-    <!-- ================= REGISTRAR USUARIO ================= -->
-    <div v-if="selectedAction === 'registrar'">
-      <h3 class="subtitulo">Registrar usuario</h3>
-
-      <form class="sistpec-form" @submit.prevent="guardarUsuario">
-        <div class="sistpec-form-row">
-          <div class="sistpec-form-group">
-            <label>Nombre</label>
-            <input v-model="nuevoUsuario.nombre" type="text" required />
-          </div>
-
-          <div class="sistpec-form-group">
-            <label>Apellido paterno</label>
-            <input v-model="nuevoUsuario.apellido_paterno" type="text" required />
-          </div>
-
-          <div class="sistpec-form-group">
-            <label>Apellido materno</label>
-            <input v-model="nuevoUsuario.apellido_materno" type="text" />
-          </div>
-
-          <div class="sistpec-form-group">
-            <label>Nombre de usuario</label>
-            <input
-              v-model="nuevoUsuario.nombre_usuario"
-              type="text"
-              required
-            />
-          </div>
-        </div>
-
-        <div class="sistpec-form-row">
-          <div class="sistpec-form-group">
-            <label>Correo electrónico</label>
-            <input
-              v-model="nuevoUsuario.correo"
-              type="email"
-              required
-            />
-          </div>
-
-          <div class="sistpec-form-group">
-            <label>Rol / tipo de usuario</label>
-            <select v-model="nuevoUsuario.tipo_usuario" required>
-              <option value="" disabled>Seleccione un rol</option>
-              <option value="1">Administrador</option>
-              <option value="2">Responsable de laboratorio</option>
-              <option value="3">Recepcionista</option>
-              <option value="4">Coordinador</option>
-              <option value="5">MVZ autorizado</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="sistpec-form-row">
-          <div class="sistpec-form-group">
-            <label>Contraseña</label>
-            <input
-              v-model="nuevoUsuario.password"
-              type="password"
-              required
-            />
-          </div>
-
-          <div class="sistpec-form-group">
-            <label>Confirmar contraseña</label>
-            <input
-              v-model="nuevoUsuario.confirmPassword"
-              type="password"
-              required
-            />
-          </div>
-        </div>
-
-        <div class="sistpec-form-row">
-          <div class="sistpec-form-group">
-            <label>Clave de rumiantes (si aplica)</label>
-            <input
-              v-model="nuevoUsuario.clave_de_rumiantes"
-              type="text"
-              placeholder="Solo para MVZ autorizado"
-            />
-          </div>
-
-          <div class="sistpec-form-group sistpec-form-group-inline">
-            <label>Vigencia</label>
-            <div class="sistpec-form-inline-inputs">
-              <input
-                v-model="nuevoUsuario.vigencia_inicio"
-                type="date"
-                required
-              />
-              <span class="vigencia-sep">a</span>
-              <input
-                v-model="nuevoUsuario.vigencia_fin"
-                type="date"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="sistpec-form-row sistpec-form-row-end">
-          <label class="sistpec-checkbox">
-            <input
-              v-model="nuevoUsuario.activo"
-              type="checkbox"
-            />
-            <span>Usuario activo</span>
-          </label>
-        </div>
-
-        <div class="sistpec-form-actions">
-          <button type="submit" class="sistpec-btn-primary">
-            GUARDAR
-          </button>
-          <button
-            type="button"
-            class="sistpec-btn-secondary"
-            @click="limpiarFormulario"
-          >
-            LIMPIAR
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- ================= CONSULTAR USUARIOS ================= -->
-    <div v-else-if="selectedAction === 'consultar'">
-      <h3 class="subtitulo">Consultar usuarios</h3>
-
-      <!-- Barra de filtros -->
-      <div class="sistpec-search-bar">
-        <div class="sistpec-form-group">
-          <label>Nombre de usuario</label>
-          <input
-            v-model="filtros.nombre_usuario"
-            type="text"
-            placeholder="Ej. admin01"
-          />
-        </div>
-
-        <div class="sistpec-form-group">
-          <label>Clave de rumiantes</label>
-          <input
-            v-model="filtros.clave_de_rumiantes"
-            type="text"
-            placeholder="Ej. VER-001-2025"
-          />
-        </div>
-
-        <div class="sistpec-form-group">
-          <label>Correo electrónico</label>
-          <input
-            v-model="filtros.correo"
-            type="email"
-            placeholder="usuario@ejemplo.com"
-          />
-        </div>
-
-        <div class="sistpec-form-group sistpec-search-actions">
-          <button
-            type="button"
-            class="sistpec-btn-primary"
-            @click="buscarUsuarios"
-          >
-            BUSCAR
-          </button>
-          <button
-            type="button"
-            class="sistpec-btn-secondary"
-            @click="limpiarFiltros"
-          >
-            LIMPIAR FILTROS
-          </button>
-        </div>
+        <ul>
+          <li v-for="(err, index) in errores" :key="index">
+            {{ err }}
+          </li>
+        </ul>
       </div>
 
-      <!-- Tabla de resultados -->
-      <div class="sistpec-table-wrapper">
-        <table class="sistpec-table">
-          <thead>
-            <tr>
-              <th>Nombre completo</th>
-              <th>Nombre usuario</th>
-              <th>Correo</th>
-              <th>Rol</th>
-              <th>Clave rumiantes</th>
-              <th>Vigencia</th>
-              <th>Estatus</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in usuariosFiltrados" :key="u.id">
-              <td>{{ u.nombre_completo }}</td>
-              <td>{{ u.nombre_usuario }}</td>
-              <td>{{ u.correo }}</td>
-              <td>{{ u.rolEtiqueta }}</td>
-              <td>{{ u.clave_de_rumiantes || '-' }}</td>
-              <td>{{ u.vigencia_inicio }} a {{ u.vigencia_fin }}</td>
-              <td>
-                <span
-                  class="badge"
-                  :class="u.activo ? 'badge--activo' : 'badge--inactivo'"
-                >
-                  {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
-                </span>
-              </td>
-            </tr>
-            <tr v-if="usuariosFiltrados.length === 0">
-              <td colspan="7" class="sin-resultados">
-                No se encontraron usuarios con los criterios de búsqueda.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ================= EDITAR USUARIOS ================= -->
-    <div v-else-if="selectedAction === 'editar'">
-      <h3 class="subtitulo">Editar usuarios</h3>
-
-      <!-- Filtros reutilizados -->
-      <div class="sistpec-search-bar">
-        <div class="sistpec-form-group">
-          <label>Nombre de usuario</label>
-          <input
-            v-model="filtros.nombre_usuario"
-            type="text"
-            placeholder="Ej. admin01"
-          />
-        </div>
-
-        <div class="sistpec-form-group">
-          <label>Clave de rumiantes</label>
-          <input
-            v-model="filtros.clave_de_rumiantes"
-            type="text"
-            placeholder="Ej. VER-001-2025"
-          />
-        </div>
-
-        <div class="sistpec-form-group">
-          <label>Correo electrónico</label>
-          <input
-            v-model="filtros.correo"
-            type="email"
-            placeholder="usuario@ejemplo.com"
-          />
-        </div>
-
-        <div class="sistpec-form-group sistpec-search-actions">
-          <button
-            type="button"
-            class="sistpec-btn-primary"
-            @click="buscarUsuarios"
-          >
-            BUSCAR
-          </button>
-          <button
-            type="button"
-            class="sistpec-btn-secondary"
-            @click="limpiarFiltros"
-          >
-            LIMPIAR FILTROS
-          </button>
-        </div>
+      <!-- ALERTA DE ÉXITO -->
+      <div
+        v-if="mensajeExito"
+        class="modulo-alert modulo-alert--success"
+      >
+        {{ mensajeExito }}
       </div>
 
-      <!-- Tabla con botón Editar -->
-      <div class="sistpec-table-wrapper">
-        <table class="sistpec-table">
-          <thead>
-            <tr>
-              <th>Nombre completo</th>
-              <th>Nombre usuario</th>
-              <th>Correo</th>
-              <th>Rol</th>
-              <th>Clave rumiantes</th>
-              <th>Vigencia</th>
-              <th>Estatus</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in usuariosFiltrados" :key="u.id">
-              <td>{{ u.nombre_completo }}</td>
-              <td>{{ u.nombre_usuario }}</td>
-              <td>{{ u.correo }}</td>
-              <td>{{ u.rolEtiqueta }}</td>
-              <td>{{ u.clave_de_rumiantes || '-' }}</td>
-              <td>{{ u.vigencia_inicio }} a {{ u.vigencia_fin }}</td>
-              <td>
-                <span
-                  class="badge"
-                  :class="u.activo ? 'badge--activo' : 'badge--inactivo'"
-                >
-                  {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
-                </span>
-              </td>
-              <td>
-                <button
-                  type="button"
-                  class="sistpec-btn-secondary sistpec-btn-sm"
-                  @click="seleccionarUsuario(u)"
-                >
-                  EDITAR
-                </button>
-              </td>
-            </tr>
-            <tr v-if="usuariosFiltrados.length === 0">
-              <td colspan="8" class="sin-resultados">
-                No se encontraron usuarios con los criterios de búsqueda.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- ================= REGISTRAR USUARIO ================= -->
+      <div v-if="selectedAction === 'registrar'">
+        <h3 class="subtitulo">Registrar usuario</h3>
 
-      <!-- Formulario de edición -->
-      <div v-if="usuarioEditando" class="sistpec-edit-panel">
-        <h4 class="subtitulo-secundario">
-          Editando: {{ usuarioEditando.nombre_usuario }}
-        </h4>
-
-        <form class="sistpec-form" @submit.prevent="guardarCambiosUsuario">
+        <form class="sistpec-form" @submit.prevent="guardarUsuario">
           <div class="sistpec-form-row">
             <div class="sistpec-form-group">
               <label>Nombre</label>
-              <input v-model="usuarioEditando.nombre" type="text" required />
+              <input v-model="nuevoUsuario.nombre" type="text" required />
             </div>
 
             <div class="sistpec-form-group">
               <label>Apellido paterno</label>
-              <input v-model="usuarioEditando.apellido_paterno" type="text" required />
+              <input v-model="nuevoUsuario.apellido_paterno" type="text" required />
             </div>
 
             <div class="sistpec-form-group">
               <label>Apellido materno</label>
-              <input v-model="usuarioEditando.apellido_materno" type="text" />
+              <input v-model="nuevoUsuario.apellido_materno" type="text" />
             </div>
 
             <div class="sistpec-form-group">
               <label>Nombre de usuario</label>
               <input
-                v-model="usuarioEditando.nombre_usuario"
+                v-model="nuevoUsuario.nombre_usuario"
                 type="text"
                 required
               />
@@ -402,7 +82,7 @@
             <div class="sistpec-form-group">
               <label>Correo electrónico</label>
               <input
-                v-model="usuarioEditando.correo"
+                v-model="nuevoUsuario.correo"
                 type="email"
                 required
               />
@@ -410,7 +90,7 @@
 
             <div class="sistpec-form-group">
               <label>Rol / tipo de usuario</label>
-              <select v-model="usuarioEditando.tipo_usuario" required>
+              <select v-model="nuevoUsuario.tipo_usuario" required>
                 <option value="" disabled>Seleccione un rol</option>
                 <option value="1">Administrador</option>
                 <option value="2">Responsable de laboratorio</option>
@@ -423,20 +103,20 @@
 
           <div class="sistpec-form-row">
             <div class="sistpec-form-group">
-              <label>Nueva contraseña (opcional)</label>
+              <label>Contraseña</label>
               <input
-                v-model="usuarioEditando.password"
+                v-model="nuevoUsuario.password"
                 type="password"
-                placeholder="Dejar en blanco para no cambiar"
+                required
               />
             </div>
 
             <div class="sistpec-form-group">
-              <label>Confirmar nueva contraseña</label>
+              <label>Confirmar contraseña</label>
               <input
-                v-model="usuarioEditando.confirmPassword"
+                v-model="nuevoUsuario.confirmPassword"
                 type="password"
-                placeholder="Repetir contraseña"
+                required
               />
             </div>
           </div>
@@ -445,8 +125,9 @@
             <div class="sistpec-form-group">
               <label>Clave de rumiantes (si aplica)</label>
               <input
-                v-model="usuarioEditando.clave_de_rumiantes"
+                v-model="nuevoUsuario.clave_de_rumiantes"
                 type="text"
+                placeholder="Solo para MVZ autorizado"
               />
             </div>
 
@@ -454,13 +135,13 @@
               <label>Vigencia</label>
               <div class="sistpec-form-inline-inputs">
                 <input
-                  v-model="usuarioEditando.vigencia_inicio"
+                  v-model="nuevoUsuario.vigencia_inicio"
                   type="date"
                   required
                 />
                 <span class="vigencia-sep">a</span>
                 <input
-                  v-model="usuarioEditando.vigencia_fin"
+                  v-model="nuevoUsuario.vigencia_fin"
                   type="date"
                   required
                 />
@@ -471,7 +152,7 @@
           <div class="sistpec-form-row sistpec-form-row-end">
             <label class="sistpec-checkbox">
               <input
-                v-model="usuarioEditando.activo"
+                v-model="nuevoUsuario.activo"
                 type="checkbox"
               />
               <span>Usuario activo</span>
@@ -480,162 +161,504 @@
 
           <div class="sistpec-form-actions">
             <button type="submit" class="sistpec-btn-primary">
-              GUARDAR CAMBIOS
+              GUARDAR
             </button>
             <button
               type="button"
               class="sistpec-btn-secondary"
-              @click="cancelarEdicion"
+              @click="limpiarFormulario"
             >
-              CANCELAR
+              LIMPIAR
             </button>
           </div>
         </form>
       </div>
-    </div>
 
-    <!-- ================= ELIMINAR / DESACTIVAR USUARIOS ================= -->
-    <div v-else-if="selectedAction === 'eliminar'">
-      <h3 class="subtitulo">Eliminar (desactivar) usuarios</h3>
+      <!-- ================= CONSULTAR USUARIOS ================= -->
+      <div v-else-if="selectedAction === 'consultar'">
+        <h3 class="subtitulo">Consultar usuarios</h3>
 
-      <div class="sistpec-info-box">
-        <p class="sistpec-info-text">
-          La eliminación se realiza como baja lógica: el usuario se marca como
-          <strong>INACTIVO</strong> y deja de tener acceso al sistema SISTPEC.
+        <!-- Barra de filtros -->
+        <div class="sistpec-search-bar">
+          <div class="sistpec-form-group">
+            <label>Nombre de usuario</label>
+            <input
+              v-model="filtros.nombre_usuario"
+              type="text"
+              placeholder="Ej. admin01"
+            />
+          </div>
+
+          <div class="sistpec-form-group">
+            <label>Clave de rumiantes</label>
+            <input
+              v-model="filtros.clave_de_rumiantes"
+              type="text"
+              placeholder="Ej. VER-001-2025"
+            />
+          </div>
+
+          <div class="sistpec-form-group">
+            <label>Correo electrónico</label>
+            <input
+              v-model="filtros.correo"
+              type="email"
+              placeholder="usuario@ejemplo.com"
+            />
+          </div>
+
+          <div class="sistpec-form-group sistpec-search-actions">
+            <button
+              type="button"
+              class="sistpec-btn-primary"
+              @click="buscarUsuarios"
+            >
+              BUSCAR
+            </button>
+            <button
+              type="button"
+              class="sistpec-btn-secondary"
+              @click="limpiarFiltros"
+            >
+              LIMPIAR FILTROS
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div class="sistpec-table-wrapper">
+          <table class="sistpec-table">
+            <thead>
+              <tr>
+                <th>Nombre completo</th>
+                <th>Nombre usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Clave rumiantes</th>
+                <th>Vigencia</th>
+                <th>Estatus</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="u in usuariosFiltrados" :key="u.id">
+                <td>{{ u.nombre_completo }}</td>
+                <td>{{ u.nombre_usuario }}</td>
+                <td>{{ u.correo }}</td>
+                <td>{{ u.rolEtiqueta }}</td>
+                <td>{{ u.clave_de_rumiantes || '-' }}</td>
+                <td>{{ u.vigencia_inicio }} a {{ u.vigencia_fin }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    :class="u.activo ? 'badge--activo' : 'badge--inactivo'"
+                  >
+                    {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="usuariosFiltrados.length === 0">
+                <td colspan="7" class="sin-resultados">
+                  No se encontraron usuarios con los criterios de búsqueda.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ================= EDITAR USUARIOS ================= -->
+      <div v-else-if="selectedAction === 'editar'">
+        <h3 class="subtitulo">Editar usuarios</h3>
+
+        <!-- Filtros reutilizados -->
+        <div class="sistpec-search-bar">
+          <div class="sistpec-form-group">
+            <label>Nombre de usuario</label>
+            <input
+              v-model="filtros.nombre_usuario"
+              type="text"
+              placeholder="Ej. admin01"
+            />
+          </div>
+
+          <div class="sistpec-form-group">
+            <label>Clave de rumiantes</label>
+            <input
+              v-model="filtros.clave_de_rumiantes"
+              type="text"
+              placeholder="Ej. VER-001-2025"
+            />
+          </div>
+
+          <div class="sistpec-form-group">
+            <label>Correo electrónico</label>
+            <input
+              v-model="filtros.correo"
+              type="email"
+              placeholder="usuario@ejemplo.com"
+            />
+          </div>
+
+          <div class="sistpec-form-group sistpec-search-actions">
+            <button
+              type="button"
+              class="sistpec-btn-primary"
+              @click="buscarUsuarios"
+            >
+              BUSCAR
+            </button>
+            <button
+              type="button"
+              class="sistpec-btn-secondary"
+              @click="limpiarFiltros"
+            >
+              LIMPIAR FILTROS
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla con botón Editar -->
+        <div class="sistpec-table-wrapper">
+          <table class="sistpec-table">
+            <thead>
+              <tr>
+                <th>Nombre completo</th>
+                <th>Nombre usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Clave rumiantes</th>
+                <th>Vigencia</th>
+                <th>Estatus</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="u in usuariosFiltrados" :key="u.id">
+                <td>{{ u.nombre_completo }}</td>
+                <td>{{ u.nombre_usuario }}</td>
+                <td>{{ u.correo }}</td>
+                <td>{{ u.rolEtiqueta }}</td>
+                <td>{{ u.clave_de_rumiantes || '-' }}</td>
+                <td>{{ u.vigencia_inicio }} a {{ u.vigencia_fin }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    :class="u.activo ? 'badge--activo' : 'badge--inactivo'"
+                  >
+                    {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="sistpec-btn-secondary sistpec-btn-sm"
+                    @click="seleccionarUsuario(u)"
+                  >
+                    EDITAR
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="usuariosFiltrados.length === 0">
+                <td colspan="8" class="sin-resultados">
+                  No se encontraron usuarios con los criterios de búsqueda.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Formulario de edición -->
+        <div v-if="usuarioEditando" class="sistpec-edit-panel">
+          <h4 class="subtitulo-secundario">
+            Editando: {{ usuarioEditando.nombre_usuario }}
+          </h4>
+
+          <form class="sistpec-form" @submit.prevent="guardarCambiosUsuario">
+            <div class="sistpec-form-row">
+              <div class="sistpec-form-group">
+                <label>Nombre</label>
+                <input v-model="usuarioEditando.nombre" type="text" required />
+              </div>
+
+              <div class="sistpec-form-group">
+                <label>Apellido paterno</label>
+                <input v-model="usuarioEditando.apellido_paterno" type="text" required />
+              </div>
+
+              <div class="sistpec-form-group">
+                <label>Apellido materno</label>
+                <input v-model="usuarioEditando.apellido_materno" type="text" />
+              </div>
+
+              <div class="sistpec-form-group">
+                <label>Nombre de usuario</label>
+                <input
+                  v-model="usuarioEditando.nombre_usuario"
+                  type="text"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="sistpec-form-row">
+              <div class="sistpec-form-group">
+                <label>Correo electrónico</label>
+                <input
+                  v-model="usuarioEditando.correo"
+                  type="email"
+                  required
+                />
+              </div>
+
+              <div class="sistpec-form-group">
+                <label>Rol / tipo de usuario</label>
+                <select v-model="usuarioEditando.tipo_usuario" required>
+                  <option value="" disabled>Seleccione un rol</option>
+                  <option value="1">Administrador</option>
+                  <option value="2">Responsable de laboratorio</option>
+                  <option value="3">Recepcionista</option>
+                  <option value="4">Coordinador</option>
+                  <option value="5">MVZ autorizado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="sistpec-form-row">
+              <div class="sistpec-form-group">
+                <label>Nueva contraseña (opcional)</label>
+                <input
+                  v-model="usuarioEditando.password"
+                  type="password"
+                  placeholder="Dejar en blanco para no cambiar"
+                />
+              </div>
+
+              <div class="sistpec-form-group">
+                <label>Confirmar nueva contraseña</label>
+                <input
+                  v-model="usuarioEditando.confirmPassword"
+                  type="password"
+                  placeholder="Repetir contraseña"
+                />
+              </div>
+            </div>
+
+            <div class="sistpec-form-row">
+              <div class="sistpec-form-group">
+                <label>Clave de rumiantes (si aplica)</label>
+                <input
+                  v-model="usuarioEditando.clave_de_rumiantes"
+                  type="text"
+                />
+              </div>
+
+              <div class="sistpec-form-group sistpec-form-group-inline">
+                <label>Vigencia</label>
+                <div class="sistpec-form-inline-inputs">
+                  <input
+                    v-model="usuarioEditando.vigencia_inicio"
+                    type="date"
+                    required
+                  />
+                  <span class="vigencia-sep">a</span>
+                  <input
+                    v-model="usuarioEditando.vigencia_fin"
+                    type="date"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="sistpec-form-row sistpec-form-row-end">
+              <label class="sistpec-checkbox">
+                <input
+                  v-model="usuarioEditando.activo"
+                  type="checkbox"
+                />
+                <span>Usuario activo</span>
+              </label>
+            </div>
+
+            <div class="sistpec-form-actions">
+              <button type="submit" class="sistpec-btn-primary">
+                GUARDAR CAMBIOS
+              </button>
+              <button
+                type="button"
+                class="sistpec-btn-secondary"
+                @click="cancelarEdicion"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ================= ELIMINAR / DESACTIVAR USUARIOS ================= -->
+      <div v-else-if="selectedAction === 'eliminar'">
+        <h3 class="subtitulo">Eliminar (desactivar) usuarios</h3>
+
+        <div class="sistpec-info-box">
+          <p class="sistpec-info-text">
+            La eliminación se realiza como baja lógica: el usuario se marca como
+            <strong>INACTIVO</strong> y deja de tener acceso al sistema SISTPEC.
+          </p>
+        </div>
+
+        <!-- Filtros -->
+        <div class="sistpec-search-bar">
+          <div class="sistpec-form-group">
+            <label>Nombre de usuario</label>
+            <input
+              v-model="filtros.nombre_usuario"
+              type="text"
+              placeholder="Ej. admin01"
+            />
+          </div>
+
+          <div class="sistpec-form-group">
+            <label>Clave de rumiantes</label>
+            <input
+              v-model="filtros.clave_de_rumiantes"
+              type="text"
+              placeholder="Ej. VER-001-2025"
+            />
+          </div>
+
+          <div class="sistpec-form-group">
+            <label>Correo electrónico</label>
+            <input
+              v-model="filtros.correo"
+              type="email"
+              placeholder="usuario@ejemplo.com"
+            />
+          </div>
+
+          <div class="sistpec-form-group sistpec-search-actions">
+            <button
+              type="button"
+              class="sistpec-btn-primary"
+              @click="buscarUsuarios"
+            >
+              BUSCAR
+            </button>
+            <button
+              type="button"
+              class="sistpec-btn-secondary"
+              @click="limpiarFiltros"
+            >
+              LIMPIAR FILTROS
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla con opción de desactivar -->
+        <div class="sistpec-table-wrapper">
+          <table class="sistpec-table">
+            <thead>
+              <tr>
+                <th>Nombre completo</th>
+                <th>Nombre usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Clave rumiantes</th>
+                <th>Vigencia</th>
+                <th>Estatus</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="u in usuariosFiltrados" :key="u.id">
+                <td>{{ u.nombre_completo }}</td>
+                <td>{{ u.nombre_usuario }}</td>
+                <td>{{ u.correo }}</td>
+                <td>{{ u.rolEtiqueta }}</td>
+                <td>{{ u.clave_de_rumiantes || '-' }}</td>
+                <td>{{ u.vigencia_inicio }} a {{ u.vigencia_fin }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    :class="u.activo ? 'badge--activo' : 'badge--inactivo'"
+                  >
+                    {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
+                  </span>
+                </td>
+                <td>
+                  <!-- Botón DESACTIVAR -->
+                  <button
+                    type="button"
+                    class="sistpec-btn-danger sistpec-btn-sm"
+                    :disabled="!u.activo"
+                    @click="desactivarUsuario(u)"
+                  >
+                    DESACTIVAR
+                  </button>
+
+                  <!-- Botón REACTIVAR -->
+                  <button
+                    type="button"
+                    class="sistpec-btn-secondary sistpec-btn-sm"
+                    :disabled="u.activo"
+                    @click="reactivarUsuario(u)"
+                    style="margin-left: 6px;"
+                  >
+                    REACTIVAR
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="usuariosFiltrados.length === 0">
+                <td colspan="8" class="sin-resultados">
+                  No se encontraron usuarios con los criterios de búsqueda.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ================= Fallback (no debería ocurrir) ================= -->
+      <div v-else>
+        <h3 class="subtitulo">
+          {{ tituloAccionActual || 'Acción no disponible' }}
+        </h3>
+        <p>
+          El contenido para esta acción aún está en desarrollo.
         </p>
       </div>
-
-      <!-- Filtros -->
-      <div class="sistpec-search-bar">
-        <div class="sistpec-form-group">
-          <label>Nombre de usuario</label>
-          <input
-            v-model="filtros.nombre_usuario"
-            type="text"
-            placeholder="Ej. admin01"
-          />
-        </div>
-
-        <div class="sistpec-form-group">
-          <label>Clave de rumiantes</label>
-          <input
-            v-model="filtros.clave_de_rumiantes"
-            type="text"
-            placeholder="Ej. VER-001-2025"
-          />
-        </div>
-
-        <div class="sistpec-form-group">
-          <label>Correo electrónico</label>
-          <input
-            v-model="filtros.correo"
-            type="email"
-            placeholder="usuario@ejemplo.com"
-          />
-        </div>
-
-        <div class="sistpec-form-group sistpec-search-actions">
-          <button
-            type="button"
-            class="sistpec-btn-primary"
-            @click="buscarUsuarios"
-          >
-            BUSCAR
-          </button>
-          <button
-            type="button"
-            class="sistpec-btn-secondary"
-            @click="limpiarFiltros"
-          >
-            LIMPIAR FILTROS
-          </button>
-        </div>
-      </div>
-
-      <!-- Tabla con opción de desactivar -->
-      <div class="sistpec-table-wrapper">
-        <table class="sistpec-table">
-          <thead>
-            <tr>
-              <th>Nombre completo</th>
-              <th>Nombre usuario</th>
-              <th>Correo</th>
-              <th>Rol</th>
-              <th>Clave rumiantes</th>
-              <th>Vigencia</th>
-              <th>Estatus</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in usuariosFiltrados" :key="u.id">
-              <td>{{ u.nombre_completo }}</td>
-              <td>{{ u.nombre_usuario }}</td>
-              <td>{{ u.correo }}</td>
-              <td>{{ u.rolEtiqueta }}</td>
-              <td>{{ u.clave_de_rumiantes || '-' }}</td>
-              <td>{{ u.vigencia_inicio }} a {{ u.vigencia_fin }}</td>
-              <td>
-                <span
-                  class="badge"
-                  :class="u.activo ? 'badge--activo' : 'badge--inactivo'"
-                >
-                  {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
-                </span>
-              </td>
-             <td>
-           <!-- Botón DESACTIVAR -->
-        <button
-           type="button"
-           class="sistpec-btn-danger sistpec-btn-sm"
-           :disabled="!u.activo"
-           @click="desactivarUsuario(u)"
-        >
-            DESACTIVAR
-        </button>
-
-         <!-- Botón REACTIVAR -->
-        <button
-          type="button"
-          class="sistpec-btn-secondary sistpec-btn-sm"
-          :disabled="u.activo"
-          @click="reactivarUsuario(u)"
-          style="margin-left: 6px;"
-        >
-          REACTIVAR
-        </button>
-          </td>
-
-
-            </tr>
-            <tr v-if="usuariosFiltrados.length === 0">
-              <td colspan="8" class="sin-resultados">
-                No se encontraron usuarios con los criterios de búsqueda.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ================= Fallback (no debería ocurrir) ================= -->
-    <div v-else>
-      <h3 class="subtitulo">
-        {{ tituloAccionActual || 'Acción no disponible' }}
-      </h3>
-      <p>
-        El contenido para esta acción aún está en desarrollo.
-      </p>
-    </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted, nextTick } from 'vue';
 
 defineProps({
   codigo: { type: String, required: true },
   rol:    { type: String, required: true }
+});
+
+// ====== REFERENCIA AL CONTENEDOR PARA SCROLL ======
+const moduloRoot = ref(null);
+
+function desplazarAlModulo() {
+  nextTick(() => {
+    if (!moduloRoot.value) return;
+
+    const rect = moduloRoot.value.getBoundingClientRect();
+    const offsetTop = rect.top + window.scrollY - 120; // ajustar según altura navbar
+
+    window.scrollTo({
+      top: offsetTop,
+      behavior: 'smooth'
+    });
+  });
+}
+
+// Al montar el componente, desplaza la pantalla al módulo
+onMounted(() => {
+  desplazarAlModulo();
 });
 
 // Catálogo de roles
@@ -1138,10 +1161,7 @@ function reactivarUsuario(u) {
 
   mensajeExito.value = 'El usuario se ha reactivado correctamente.';
 }
-
 </script>
-
-
 
 <style scoped>
 /* Acciones */
