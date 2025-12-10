@@ -36,6 +36,7 @@ import { computed, defineProps, ref, watch, nextTick } from 'vue';
 // IMPORTAMOS LOS MÓDULOS
 import AdminUsuariosModulo from './AdminUsuariosModulo.vue';
 import AdminPropietariosModulo from './AdminPropietariosModulo.vue';
+import AdminUppModulo from './AdminUppModulo.vue';
 // Más adelante podrás importar otros módulos:
 // import AdminUppModulo from './AdminUppModulo.vue';
 // import AdminMuestrasModulo from './AdminMuestrasModulo.vue';
@@ -50,8 +51,8 @@ const props = defineProps({
 // Mapa: código de módulo -> componente Vue
 const componentMap = {
   adminAdministrarUsuarios: AdminUsuariosModulo,
-  adminAdministrarPropietarios: AdminPropietariosModulo
-  // adminAdministrarUPP: AdminUppModulo,
+  adminAdministrarPropietarios: AdminPropietariosModulo,
+  adminAdministrarUPP: AdminUppModulo,
   // adminAdministrarMuestras: AdminMuestrasModulo,
   // ...
 };
