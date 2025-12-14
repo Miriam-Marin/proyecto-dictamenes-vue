@@ -1,7 +1,7 @@
 <template>
   <section>
     <header class="modulo-header">
-      <h3 class="subtitulo">Administrar Hoja de reporte</h3>
+      <h3 class="subtitulo">Consultar</h3>
       <p class="modulo-subtitle">
         Consulta hojas de reporte. Capture al menos un criterio de búsqueda.
       </p>

@@ -1,7 +1,7 @@
 <template>
   <section class="coord-modulo">
     <header class="modulo-header">
-      <h3 class="subtitulo">Administrar Actividad de campo</h3>
+      <h3 class="subtitulo">Consultar</h3>
       <p class="modulo-subtitle">
         Consulta actividades registradas. Capture al menos un criterio de búsqueda.
       </p>
@@ -90,7 +90,7 @@ const filtros = ref({
 const buscado = ref(false);
 const mostrarAlerta = ref(false);
 
-// datos demo (luego se reemplaza por backend)
+// datos demo (luego se reemplazaran con el backend)
 const demo = ref([
   { id: 1, fecha: '2025-12-01', mvz: 'MVZ Juan Pérez', upp: 'UPP-VER-001', municipio: 'Xalapa', actividad: 'Visita a campo / toma de muestra' },
   { id: 2, fecha: '2025-12-03', mvz: 'MVZ Ana López', upp: 'UPP-VER-014', municipio: 'Coatepec', actividad: 'Seguimiento epidemiológico' },
@@ -174,7 +174,7 @@ const resultadosFiltrados = computed(() => {
   color: #7a1f1f;
 }
 
-/* Barra filtros (igual estilo admin) */
+/* Barra filtros  */
 .sistpec-search-bar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

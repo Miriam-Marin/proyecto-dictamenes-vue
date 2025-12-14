@@ -1,7 +1,7 @@
 <template>
   <section>
     <header class="modulo-header">
-      <h3 class="subtitulo">Administrar Resultados</h3>
+      <h3 class="subtitulo">Consultar</h3>
       <p class="modulo-subtitle">
         Consultar resultados de laboratorio. Capture al menos un criterio de búsqueda.
       </p>

@@ -1,9 +1,8 @@
 <template>
   <section>
     <header class="modulo-header">
-      <h3 class="subtitulo">Administrar UPP</h3>
       <p class="modulo-subtitle">
-        Consulte UPP registradas. Capture al menos un criterio de búsqueda.
+      
       </p>
     </header>
 
@@ -109,7 +108,7 @@
 
     <!-- ELIMINAR (baja lógica) -->
     <div v-else-if="selectedAction === 'eliminar'">
-      <h4 class="subtitulo-secundario">Eliminar UPP (baja lógica)</h4>
+      <h4 class="subtitulo-secundario">Eliminar UPP</h4>
 
       <div class="sistpec-info-box">
         <p class="sistpec-info-text">
@@ -211,8 +210,8 @@
 import { computed, ref, watch } from 'vue';
 
 const acciones = [
-  { id: 'consultar', label: 'CONSULTAR UPP' },
-  { id: 'eliminar', label: 'ELIMINAR UPP' }
+  { id: 'consultar', label: 'CONSULTAR' },
+  { id: 'eliminar', label: 'ELIMINAR' }
 ];
 
 const selectedAction = ref('consultar');

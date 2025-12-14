@@ -19,7 +19,7 @@
       {{ mensajeExito }}
     </div>
 
-    <h3 class="subtitulo">ConsultarS</h3>
+    <h3 class="subtitulo">Consultar</h3>
 
     <div class="sistpec-info-box">
       <p class="sistpec-info-text">
