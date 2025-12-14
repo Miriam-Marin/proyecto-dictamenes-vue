@@ -390,7 +390,7 @@ function buscarUpp() {
   mensajeExito.value = '';
   seBusco.value = false;
 
-  // >>> AQUÍ ESTÁ LO QUE PEDISTE <<<
+  // >>> Se debe de capturar al menos un criterio <<<
   if (!hayAlgunFiltro()) {
     errores.value.push(
       'Debe capturar al menos un criterio de búsqueda para consultar UPP.'

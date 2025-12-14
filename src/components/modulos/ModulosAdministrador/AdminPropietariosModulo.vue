@@ -637,7 +637,7 @@ const propietariosFiltrados = computed(() => {
 
 function buscarPropietarios() {
   // La búsqueda es reactiva con los filtros;
-  // aquí podrías loggear o llamar a backend si lo requiere el CU.
+  // aquo se loggea o llama a backend si lo requiere el CU.
 }
 
 function limpiarFiltros() {

@@ -37,7 +37,7 @@
       </ul>
     </div>
 
-    <!-- ALERTA DE ÉXITO (en este módulo casi no se usa, pero queda lista) -->
+    <!-- ALERTA DE ÉXITO (en este módulo casi no se usa) -->
     <div
       v-if="mensajeExito"
       class="modulo-alert modulo-alert--success"
@@ -318,7 +318,7 @@ const muestrasFiltradas = computed(() => {
 
 function buscarMuestras() {
   // La búsqueda es reactiva con los filtros;
-  // aquí podrías loggear o llamar a backend si lo requiere el CU.
+  // aquí se puede llamar a backend si lo requiere el CU.
 }
 
 function limpiarFiltros() {

@@ -116,7 +116,7 @@
         </select>
       </div>
 
-      <!-- BOTONES: OCUPAN TODA LA FILA Y SE ALINEAN A LA IZQUIERDA -->
+    
       <div class="sistpec-form-group sistpec-search-actions sistpec-search-actions-full">
         <button
           type="button"

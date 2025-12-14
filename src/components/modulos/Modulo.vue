@@ -12,7 +12,7 @@
       </p>
     </header>
 
-    <!-- Aquí se inyecta dinámicamente el módulo correspondiente -->
+    <!-- Se inyecta dinámicamente el módulo correspondiente -->
     <component
       :is="currentComponent"
       :codigo="codigo"
@@ -34,7 +34,7 @@
 import { computed, defineProps, ref, watch, nextTick } from 'vue';
 
 // =======================
-// IMPORTAMOS LOS MÓDULOS
+// IMPORTAR LOS MÓDULOS
 // =======================
 
 // --- ADMINISTRADOR ---
@@ -45,7 +45,7 @@ import AdminMuestrasModulo from './ModulosAdministrador/AdminMuestrasModulo.vue'
 import AdminResultadosModulo from './ModulosAdministrador/AdminResultadosModulo.vue';
 
 // --- COORDINADOR ---
-// Ajusta los nombres si tus archivos se llaman diferente.
+
 import CoordUppModulo from './ModulosCoordinador/CoordUppModulo.vue';
 import CoordResultadosModulo from './ModulosCoordinador/CoordResultadosModulo.vue';
 import CoordHojaReporteModulo from './ModulosCoordinador/CoordHojaReporteModulo.vue';
@@ -67,7 +67,7 @@ const componentMap = {
   adminAdministrarResultados: AdminResultadosModulo,
 
   // ===== COORDINADOR =====
-  // Estos códigos deben coincidir con los que envía tu navbar del coordinador
+  
   coordAdministrarUPP: CoordUppModulo,
   coordAdministrarResultados: CoordResultadosModulo,
   coordAdministrarHojaReporte: CoordHojaReporteModulo,
@@ -81,13 +81,13 @@ const currentComponent = computed(() => componentMap[props.codigo] || null);
 const moduloPanelRef = ref(null);
 
 /**
- * Cuando cambia el código del módulo (es decir, cuando haces clic
- * en la barra de navegación), se hace scroll suave hasta este panel.
+ * Cuando cambia el código del módulo (cuando se hace clic en la barra de navegación), 
+ * se hace scroll suave hasta este panel.
  */
 watch(
   () => props.codigo,
   async () => {
-    await nextTick(); // esperamos a que el DOM se actualice
+    await nextTick(); // se espera a  que el DOM se actualice
 
     if (!moduloPanelRef.value) return;
 

@@ -826,7 +826,7 @@ const usuariosFiltrados = computed(() => {
 
 function buscarUsuarios() {
   // La búsqueda es reactiva con los filtros;
-  // aquí podrías loggear o llamar a backend si lo requiere el CU.
+  // aquí se loggea o llamar a backend si se requiere.
 }
 
 function limpiarFiltros() {
