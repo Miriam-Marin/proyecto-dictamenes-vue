@@ -695,10 +695,10 @@ const passwordMinLength  = 8;
 
 // Acciones disponibles
 const accionesUsuarios = [
-  { id: 'registrar', label: 'REGISTRAR USUARIO' },
-  { id: 'consultar', label: 'CONSULTAR USUARIOS' },
-  { id: 'editar',    label: 'EDITAR USUARIOS' },
-  { id: 'eliminar',  label: 'ELIMINAR USUARIOS' }
+  { id: 'registrar', label: 'REGISTRAR' },
+  { id: 'consultar', label: 'CONSULTAR' },
+  { id: 'editar',    label: 'EDITAR' },
+  { id: 'eliminar',  label: 'ELIMINAR' }
 ];
 
 const selectedAction   = ref('registrar');

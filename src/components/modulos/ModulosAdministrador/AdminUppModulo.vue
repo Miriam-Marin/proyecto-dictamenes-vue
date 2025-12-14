@@ -44,7 +44,7 @@
 
     <!-- ================= CONSULTAR UPP ================= -->
     <div v-if="selectedAction === 'consultar'">
-      <h3 class="subtitulo">Consultar UPP</h3>
+      <h3 class="subtitulo">Consultar</h3>
 
       <!-- Filtros -->
       <div class="sistpec-search-bar">
@@ -297,8 +297,8 @@ const seBusco = ref(false);
 
 // Acciones disponibles
 const accionesUpp = [
-  { id: 'consultar', label: 'CONSULTAR UPP' },
-  { id: 'eliminar', label: 'ELIMINAR UPP' }
+  { id: 'consultar', label: 'CONSULTAR' },
+  { id: 'eliminar', label: 'ELIMINAR' }
 ];
 
 const selectedAction = ref('consultar');

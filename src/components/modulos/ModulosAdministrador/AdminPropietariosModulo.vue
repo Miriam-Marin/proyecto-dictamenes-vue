@@ -47,7 +47,7 @@
 
     <!-- ================= CONSULTAR PROPIETARIOS ================= -->
     <div v-if="selectedAction === 'consultar'">
-      <h3 class="subtitulo">Consultar propietarios</h3>
+      <h3 class="subtitulo">Consultar</h3>
 
       <!-- Barra de filtros -->
       <div class="sistpec-search-bar">
@@ -149,7 +149,7 @@
 
     <!-- ================= EDITAR PROPIETARIOS ================= -->
     <div v-else-if="selectedAction === 'editar'">
-      <h3 class="subtitulo">Editar propietarios</h3>
+      <h3 class="subtitulo">Editar</h3>
 
       <!-- Filtros reutilizados -->
       <div class="sistpec-search-bar">
@@ -348,11 +348,11 @@
 
     <!-- ================= ELIMINAR / DESACTIVAR PROPIETARIOS ================= -->
     <div v-else-if="selectedAction === 'eliminar'">
-      <h3 class="subtitulo">Eliminar (desactivar) propietarios</h3>
+      <h3 class="subtitulo">Cambiar estatus</h3>
 
       <div class="sistpec-info-box">
         <p class="sistpec-info-text">
-          La eliminación se realiza como baja lógica: el propietario se marca como
+          El cambio de estatus se realiza como baja lógica: el propietario se marca como
           <strong>INACTIVO</strong> y deja de estar disponible para nuevas solicitudes
           o dictámenes, pero se conserva el historial en SISTPEC.
         </p>
@@ -513,9 +513,9 @@ function scrollAlContenido() {
 
 // Acciones disponibles (solo consulta, edición y eliminación)
 const accionesPropietarios = [
-  { id: 'consultar', label: 'CONSULTAR PROPIETARIOS' },
-  { id: 'editar',    label: 'EDITAR PROPIETARIOS' },
-  { id: 'eliminar',  label: 'ELIMINAR PROPIETARIOS' }
+  { id: 'consultar', label: 'CONSULTAR' },
+  { id: 'editar',    label: 'EDITAR' },
+  { id: 'eliminar',  label: 'ELIMINAR' }
 ];
 
 const selectedAction      = ref('consultar');
@@ -637,7 +637,7 @@ const propietariosFiltrados = computed(() => {
 
 function buscarPropietarios() {
   // La búsqueda es reactiva con los filtros;
-  // aquo se loggea o llama a backend si lo requiere el CU.
+  // aquo se loggea o llama a backend si se requiere.
 }
 
 function limpiarFiltros() {

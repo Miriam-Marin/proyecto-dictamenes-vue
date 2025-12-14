@@ -27,7 +27,7 @@
 
     <!-- ================= CONSULTAR MUESTRAS ================= -->
     <div v-if="selectedAction === 'consultar'">
-      <h3 class="subtitulo">Consultar muestras</h3>
+      <h3 class="subtitulo">Consultar</h3>
 
 
       <div class="sistpec-info-box">
@@ -195,7 +195,7 @@ function scrollAlContenido() {
 
 // Acciones disponibles (solo consulta)
 const accionesMuestras = [
-  { id: 'consultar', label: 'CONSULTAR MUESTRAS' }
+  { id: 'consultar', label: 'CONSULTAR' }
 ];
 
 const selectedAction = ref('consultar');
