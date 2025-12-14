@@ -882,8 +882,14 @@ function badgePrioridadClase(p) {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .sistpec-search-bar { grid-template-columns: 1fr; }
-  .fechas-bar { grid-template-columns: 1fr; }
-  .sistpec-form-row { grid-template-columns: 1fr; }
+  .sistpec-search-bar { 
+    grid-template-columns: 1fr; 
+  }
+  .fechas-bar { 
+    grid-template-columns: 1fr; 
+  }
+  .sistpec-form-row { 
+    grid-template-columns: 1fr; 
+  }
 }
 </style>

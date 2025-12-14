@@ -338,6 +338,8 @@ const resultadosFiltrados = computed(() => {
 }
 
 @media (max-width:768px){
-  .sistpec-search-bar { grid-template-columns: 1fr; }
+  .sistpec-search-bar { 
+    grid-template-columns: 1fr; 
+  }
 }
 </style>
