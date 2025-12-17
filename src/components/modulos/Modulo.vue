@@ -1,3 +1,35 @@
+<template>
+  <!-- Panel que contiene cualquier módulo (usuarios, propietarios, etc.) -->
+  <section
+    v-if="currentComponent"
+    class="modulo-panel"
+    ref="moduloPanelRef"
+  >
+    <header class="modulo-header">
+      <h2 class="modulo-title">{{ titulo }}</h2>
+      <p class="modulo-subtitle">
+        Seleccione la acción que desea realizar en el módulo.
+      </p>
+    </header>
+
+    <!-- Se inyecta dinámicamente el módulo correspondiente -->
+    <component
+      :is="currentComponent"
+      :codigo="codigo"
+      :rol="rol"
+    />
+  </section>
+
+  <!-- Fallback por si el código de módulo no existe en el mapa -->
+  <section
+    v-else
+    class="modulo-panel modulo-panel--empty"
+    ref="moduloPanelRef"
+  >
+    <p>No se encontró el módulo seleccionado ({{ codigo }}).</p>
+  </section>
+</template>
+
 <script setup>
 import { computed, defineProps, ref, watch, nextTick } from 'vue';
 
@@ -19,6 +51,7 @@ import ResplabNumCasoModulo from './ModulosResponsableLaboratorio/ResplabNumCaso
 import ResplabMuestrasModulo from './ModulosResponsableLaboratorio/ResplabMuestrasModulo.vue';
 import ResplabResultadosModulo from './ModulosResponsableLaboratorio/ResplabResultadosModulo.vue';
 import ResplabHojasResultadosModulo from './ModulosResponsableLaboratorio/ResplabHojasResultadosModulo.vue';
+import ResplabHojaReporteModulo from './ModulosResponsableLaboratorio/ResplabHojaReporteModulo.vue'; // ✅ FALTABA
 
 const props = defineProps({
   titulo: { type: String, required: true },
@@ -45,6 +78,7 @@ const componentMap = {
   resplabAdminMuestra: ResplabMuestrasModulo,
   resplabAdminResultados: ResplabResultadosModulo,
   resplabAdminHojaResultados: ResplabHojasResultadosModulo,
+  resplabAdminHojaReporte: ResplabHojaReporteModulo, 
 };
 
 const currentComponent = computed(() => componentMap[props.codigo] || null);
@@ -57,12 +91,15 @@ watch(
     if (!moduloPanelRef.value) return;
 
     const navbarOffset = 80;
-    const y = moduloPanelRef.value.getBoundingClientRect().top + window.scrollY - navbarOffset;
+    const y =
+      moduloPanelRef.value.getBoundingClientRect().top +
+      window.scrollY -
+      navbarOffset;
+
     window.scrollTo({ top: y, behavior: 'smooth' });
   }
 );
 </script>
-
 
 <style scoped>
 .modulo-panel {
@@ -112,4 +149,3 @@ watch(
   }
 }
 </style>
-

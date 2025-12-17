@@ -60,7 +60,7 @@
         </button>
       </div>
 
-      <!-- ===== CAMP A Ñ A ===== -->
+      <!-- ===== CAMPAÑA ===== -->
       <div v-if="tipoServicio === 'Campaña'">
         <div class="sistpec-info-box">
           <p class="sistpec-info-text">
@@ -789,11 +789,15 @@ function confirmarRecepcionCampania() {
     return;
   }
 
-  // DEMO: ticket simple
+  // ✅ CONTEO POR CANTIDAD DE MUESTRAS REGISTRADAS EN LA HOJA (NO listar folios)
+  const totalPorHoja = Array.isArray(loteSeleccionado.value.muestras)
+    ? loteSeleccionado.value.muestras.length
+    : 0;
+
   abrirVentanaTicket({
     tipo_servicio: 'Campaña',
     mvz: loteSeleccionado.value.mvz_nombre,
-    total_muestras: loteSeleccionado.value.total_muestras,
+    total_muestras: totalPorHoja,
     upp: loteSeleccionado.value.upp,
     hoja_control_campo: loteSeleccionado.value.hoja_control_campo,
     especie: loteSeleccionado.value.especie,
@@ -842,6 +846,7 @@ function confirmarRecepcionParticular() {
 
   if (errores.value.length) return;
 
+  // ✅ Para Particular el conteo es la cantidad de folios capturados (muestras registradas en esa hoja)
   abrirVentanaTicket({
     tipo_servicio: 'Particular',
     mvz: part.value.mvz_nombre,
@@ -925,7 +930,6 @@ function guardarEdicionMuestra() {
     return;
   }
 
-  // solo permite si sigue en Pendiente
   if (muestrasDemo.value[idx].estatus !== 'Pendiente') {
     errores.value.push('Solo se puede editar si el estatus es Pendiente.');
     return;
@@ -946,9 +950,7 @@ const filtrosCons = ref({
   fecha_fin: ''
 });
 
-function buscarConsultar() {
-  // reactivo, no hace falta nada aquí por ahora
-}
+function buscarConsultar() {}
 function limpiarConsultar() {
   filtrosCons.value = { id_muestra: '', upp: '', mvz: '', estatus: '', fecha_inicio: '', fecha_fin: '' };
 }
@@ -1035,7 +1037,6 @@ function eliminarMuestraPendiente(m) {
   const ok = window.confirm(`¿Desea eliminar la muestra "${m.id_muestra}"?`);
   if (!ok) return;
 
-  // demo: eliminación física; en backend será baja lógica
   muestrasDemo.value.splice(idx, 1);
   mensajeExito.value = 'Muestra eliminada (DEMO).';
 }
@@ -1048,46 +1049,59 @@ function badgeEstatusClase(estatus) {
   return 'badge--proceso';
 }
 
+/* ===================== TICKET (SIN <script> EN HTML) ===================== */
 function abrirVentanaTicket(ticket) {
-  const w = window.open('', '_blank', 'width=520,height=680');
-  if (!w) return;
+  const w = window.open('', '_blank', 'noopener,noreferrer,width=520,height=680');
+  if (!w) {
+    alert('No se pudo abrir el ticket. Permite ventanas emergentes e intenta de nuevo.');
+    return;
+  }
 
-  w.document.write(`
-    <html>
-      <head>
-        <title>Ticket de Recepción</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 14px; }
-          h2 { margin: 0 0 10px; }
-          .row { margin: 6px 0; }
-          .lbl { font-weight: 700; }
-          hr { margin: 10px 0; }
-        </style>
-      </head>
-      <body>
-        <h2>Ticket de Recepción</h2>
+  const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Ticket de Recepción</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 14px; }
+      h2 { margin: 0 0 10px; }
+      .row { margin: 6px 0; }
+      .lbl { font-weight: 700; }
+      hr { margin: 10px 0; }
+    </style>
+  </head>
+  <body>
+    <h2>Ticket de Recepción</h2>
 
-        <div class="row"><span class="lbl">MVZ:</span> ${ticket.mvz || '—'}</div>
-        <div class="row"><span class="lbl">UPP:</span> ${ticket.upp || '—'}</div>
-        <div class="row"><span class="lbl">Hoja control campo:</span> ${ticket.hoja_control_campo || '—'}</div>
-        <div class="row"><span class="lbl">Especie:</span> ${ticket.especie || '—'}</div>
-        <div class="row"><span class="lbl">Total muestras:</span> ${ticket.total_muestras ?? '—'}</div>
-        <hr/>
+    <div class="row"><span class="lbl">Servicio:</span> ${ticket.tipo_servicio || '—'}</div>
+    <div class="row"><span class="lbl">Fecha recepción:</span> ${ticket.fecha_recepcion || '—'}</div>
+    <hr/>
 
-        <div class="row"><span class="lbl">Recibió:</span> ${ticket.recibio || '—'}</div>
-      </body>
-    </html>
-  `);
+    <div class="row"><span class="lbl">MVZ:</span> ${ticket.mvz || '—'}</div>
+    <div class="row"><span class="lbl">UPP:</span> ${ticket.upp || '—'}</div>
+    <div class="row"><span class="lbl">Hoja control campo:</span> ${ticket.hoja_control_campo || '—'}</div>
+    <div class="row"><span class="lbl">Especie:</span> ${ticket.especie || '—'}</div>
 
+    <hr/>
+    <div class="row"><span class="lbl">Muestras recepcionadas:</span> ${ticket.total_muestras ?? '—'}</div>
+    <hr/>
+
+    <div class="row"><span class="lbl">Recibió:</span> ${ticket.recibio || '—'}</div>
+  </body>
+</html>
+  `;
+
+  w.document.open();
+  w.document.write(html);
   w.document.close();
- 
+
   w.onload = () => {
     w.focus();
     w.print();
+    w.onafterprint = () => w.close();
   };
 }
-
-
 </script>
 
 <style scoped>
@@ -1219,3 +1233,5 @@ function abrirVentanaTicket(ticket) {
   .sistpec-form-row { grid-template-columns: 1fr; }
 }
 </style>
+
+

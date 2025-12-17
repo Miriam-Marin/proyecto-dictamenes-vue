@@ -271,7 +271,7 @@ function cargarHoja() {
     return;
   }
 
-  // DEMO: insertamos registro simulado
+  // DEMO:registro simulado
   const newId =
     hojasResultados.value.length
       ? Math.max(...hojasResultados.value.map(x => x.id)) + 1
@@ -301,7 +301,7 @@ const filtroEliminar = ref('');
 const buscadoEliminar = ref(false);
 
 function buscarEliminar() {
-  // aquí sí permitimos buscar vacío (mostrar todo) o exigir criterio, tú decides.
+  
   buscadoEliminar.value = true;
 }
 
