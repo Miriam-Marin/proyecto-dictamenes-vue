@@ -1,0 +1,477 @@
+<template>
+  <!-- Barra de acciones -->
+  <section class="modulo-acciones">
+    <span class="modulo-acciones-titulo">Administrar Números de Caso (MVZ)</span>
+
+    <div class="modulo-acciones-botones">
+      <button
+        v-for="accion in acciones"
+        :key="accion.id"
+        type="button"
+        class="sistpec-btn-accion"
+        :class="{ active: selectedAction === accion.id }"
+        @click="cambiarAccion(accion.id)"
+      >
+        {{ accion.label }}
+      </button>
+    </div>
+
+    <div class="sistpec-info-box">
+      <p class="sistpec-info-text">{{ descripcionAccionActual }}</p>
+    </div>
+  </section>
+
+  <section class="modulo-contenido" ref="moduloContenidoRef">
+    <!-- ALERTAS -->
+    <div v-if="errores.length" class="modulo-alert modulo-alert--error">
+      <ul>
+        <li v-for="(e, i) in errores" :key="i">{{ e }}</li>
+      </ul>
+    </div>
+
+    <div v-if="mensajeExito" class="modulo-alert modulo-alert--success">
+      {{ mensajeExito }}
+    </div>
+
+    <!-- ====================== CONSULTAR ====================== -->
+    <div v-if="selectedAction === 'consultar'">
+      <h3 class="subtitulo">Consultar números de caso (solo los míos)</h3>
+
+      <div class="sistpec-info-box">
+        <p class="sistpec-info-text">
+          Aquí se muestran únicamente los números de caso asignados a hojas de control que usted registró.
+          Este módulo es <strong>solo consulta</strong>.
+        </p>
+      </div>
+
+      <div v-if="mostrarAlerta" class="modulo-alert modulo-alert--error">
+        Debe capturar <strong>al menos un criterio</strong> para buscar.
+      </div>
+
+      <!-- filtros -->
+      <div class="sistpec-search-bar">
+        <div class="sistpec-form-group">
+          <label>Número de caso</label>
+          <input v-model="filtros.numero_caso" type="text" placeholder="Ej. BR25-001" />
+        </div>
+
+        <div class="sistpec-form-group">
+          <label>Folio hoja control campo</label>
+          <input v-model="filtros.folio_hoja" type="text" placeholder="Ej. HCC-2025-010" />
+        </div>
+
+        <div class="sistpec-form-group">
+          <label>UPP</label>
+          <input v-model="filtros.upp" type="text" placeholder="Ej. 30-025-2000-001" />
+        </div>
+
+        <div class="sistpec-form-group">
+          <label>Estatus</label>
+          <select v-model="filtros.estatus">
+            <option value="">Todos</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Concluido">Concluido</option>
+            <option value="Rechazado">Rechazado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sistpec-search-bar fechas-bar">
+        <div class="sistpec-form-group sistpec-form-group-inline">
+          <label>Fecha de asignación</label>
+          <div class="sistpec-form-inline-inputs">
+            <input v-model="filtros.fecha_inicio" type="date" />
+            <span class="vigencia-sep">a</span>
+            <input v-model="filtros.fecha_fin" type="date" />
+          </div>
+        </div>
+
+        <div class="sistpec-form-group sistpec-search-actions">
+          <button type="button" class="sistpec-btn-primary" @click="buscar">
+            BUSCAR
+          </button>
+          <button type="button" class="sistpec-btn-secondary" @click="limpiar">
+            LIMPIAR
+          </button>
+        </div>
+      </div>
+
+      <!-- resultados -->
+      <div v-if="buscado" class="sistpec-table-wrapper">
+        <table class="sistpec-table">
+          <thead>
+            <tr>
+              <th>Número de caso</th>
+              <th>Folio hoja</th>
+              <th>Fecha asignación</th>
+              <th>UPP</th>
+              <th>Especie</th>
+              <th>Total muestras</th>
+              <th>Estatus</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr v-for="c in casosFiltrados" :key="c.id">
+              <td><strong>{{ c.numero_caso }}</strong></td>
+              <td>{{ c.folio_hoja }}</td>
+              <td>{{ c.fecha_asignacion }}</td>
+              <td>{{ c.upp }}</td>
+              <td>{{ c.especie }}</td>
+              <td>{{ c.total_muestras }}</td>
+              <td>
+                <span class="badge" :class="badgeEstatusClase(c.estatus)">
+                  {{ c.estatus }}
+                </span>
+              </td>
+              <td>
+                <button type="button" class="sistpec-btn-secondary sistpec-btn-sm" @click="verDetalle(c)">
+                  VER
+                </button>
+              </td>
+            </tr>
+
+            <tr v-if="casosFiltrados.length === 0">
+              <td colspan="8" class="sin-resultados">
+                No se encontraron números de caso con esos criterios.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- detalle -->
+      <div v-if="detalle" class="sistpec-edit-panel">
+        <h4 class="subtitulo-secundario">Detalle: {{ detalle.numero_caso }}</h4>
+
+        <div class="detalle-grid">
+          <div><span class="lbl">Folio hoja:</span> {{ detalle.folio_hoja }}</div>
+          <div><span class="lbl">Fecha asignación:</span> {{ detalle.fecha_asignacion }}</div>
+          <div><span class="lbl">UPP:</span> {{ detalle.upp }}</div>
+          <div><span class="lbl">Especie:</span> {{ detalle.especie }}</div>
+          <div><span class="lbl">Total muestras:</span> {{ detalle.total_muestras }}</div>
+          <div>
+            <span class="lbl">Estatus:</span>
+            <span class="badge" :class="badgeEstatusClase(detalle.estatus)">{{ detalle.estatus }}</span>
+          </div>
+          <div style="grid-column: span 2;">
+            <span class="lbl">Aretes ({{ detalle.aretes.length }}):</span>
+            <span>{{ detalle.aretes.join(', ') || '-' }}</span>
+          </div>
+          <div style="grid-column: span 2;">
+            <span class="lbl">Observaciones:</span> {{ detalle.observaciones || '-' }}
+          </div>
+        </div>
+
+        <div class="sistpec-form-actions">
+          <button type="button" class="sistpec-btn-secondary" @click="detalle = null">CERRAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- fallback -->
+    <div v-else>
+      <h3 class="subtitulo">Acción no disponible</h3>
+      <p>El contenido para esta acción aún está en desarrollo.</p>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import { computed, nextTick, ref, watch } from 'vue';
+
+defineProps({
+  codigo: { type: String, required: false, default: '' },
+  rol: { type: String, required: false, default: 'MVZ' }
+});
+
+/* ===================== Scroll ===================== */
+const moduloContenidoRef = ref(null);
+function scrollAlContenido() {
+  nextTick(() => {
+    if (!moduloContenidoRef.value) return;
+    const rect = moduloContenidoRef.value.getBoundingClientRect();
+    const offset = 90;
+    const top = rect.top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: 'smooth' });
+  });
+}
+
+/* ===================== Acciones ===================== */
+const acciones = [{ id: 'consultar', label: 'CONSULTAR' }];
+
+const selectedAction = ref('consultar');
+const errores = ref([]);
+const mensajeExito = ref('');
+
+function cambiarAccion(id) {
+  selectedAction.value = id;
+  scrollAlContenido();
+}
+
+const descripcionAccionActual = computed(() => {
+  switch (selectedAction.value) {
+    case 'consultar':
+      return 'Consulte números de caso asignados a sus hojas; solo consulta.';
+    default:
+      return '';
+  }
+});
+
+watch(
+  () => selectedAction.value,
+  () => {
+    errores.value = [];
+    mensajeExito.value = '';
+  }
+);
+
+/* ===================== DEMO: MVZ actual ===================== */
+const mvzUserId = 10;
+
+/* ===================== DEMO DATA ===================== */
+/**
+ * En producción, esto vendría del backend, por ejemplo:
+ * - casos vinculados a hoja_control_campo del MVZ
+ * - total_muestras = conteo de muestras/aretes de la hoja
+ */
+const casosDemo = ref([
+  {
+    id: 9001,
+    mvz_user_id: 10,
+    numero_caso: 'BR25-001',
+    folio_hoja: 'HCC-2025-020',
+    fecha_asignacion: '2025-12-12',
+    upp: '30-025-2000-001',
+    especie: 'Bovino',
+    total_muestras: 1,
+    estatus: 'En proceso',
+    aretes: ['301152010'],
+    observaciones: 'Recepcionado en oficina central.'
+  },
+  {
+    id: 9002,
+    mvz_user_id: 10,
+    numero_caso: 'BR25-002',
+    folio_hoja: 'HCC-2025-021',
+    fecha_asignacion: '2025-12-15',
+    upp: '30-025-2000-001',
+    especie: 'Bovino',
+    total_muestras: 4,
+    estatus: 'Pendiente',
+    aretes: ['301152111', '301152112', '301152113', '301152114'],
+    observaciones: ''
+  },
+  {
+    id: 9003,
+    mvz_user_id: 99,
+    numero_caso: 'BR25-003',
+    folio_hoja: 'HCC-2025-999',
+    fecha_asignacion: '2025-12-15',
+    upp: 'XX-XXX-XXXX-XXX',
+    especie: 'Bovino',
+    total_muestras: 2,
+    estatus: 'Pendiente',
+    aretes: ['000', '111'],
+    observaciones: 'AJENO'
+  }
+]);
+
+/* ===================== Consultar ===================== */
+const filtros = ref({
+  numero_caso: '',
+  folio_hoja: '',
+  upp: '',
+  estatus: '',
+  fecha_inicio: '',
+  fecha_fin: ''
+});
+
+const buscado = ref(false);
+const mostrarAlerta = ref(false);
+const detalle = ref(null);
+
+function hayAlMenosUnFiltro() {
+  const f = filtros.value;
+  return (
+    f.numero_caso.trim() ||
+    f.folio_hoja.trim() ||
+    f.upp.trim() ||
+    f.estatus ||
+    f.fecha_inicio ||
+    f.fecha_fin
+  );
+}
+
+function buscar() {
+  errores.value = [];
+  mensajeExito.value = '';
+  detalle.value = null;
+
+  mostrarAlerta.value = false;
+  if (!hayAlMenosUnFiltro()) {
+    buscado.value = false;
+    mostrarAlerta.value = true;
+    return;
+  }
+  buscado.value = true;
+}
+
+function limpiar() {
+  filtros.value = { numero_caso: '', folio_hoja: '', upp: '', estatus: '', fecha_inicio: '', fecha_fin: '' };
+  buscado.value = false;
+  mostrarAlerta.value = false;
+  detalle.value = null;
+  errores.value = [];
+  mensajeExito.value = '';
+}
+
+const casosFiltrados = computed(() => {
+  if (!buscado.value) return [];
+
+  const f = filtros.value;
+  const num = f.numero_caso.trim().toLowerCase();
+  const fol = f.folio_hoja.trim().toLowerCase();
+  const upp = f.upp.trim().toLowerCase();
+  const est = f.estatus;
+  const ini = f.fecha_inicio;
+  const fin = f.fecha_fin;
+
+  return casosDemo.value
+    .filter(c => c.mvz_user_id === mvzUserId)
+    .filter(c => (num ? String(c.numero_caso || '').toLowerCase().includes(num) : true))
+    .filter(c => (fol ? String(c.folio_hoja || '').toLowerCase().includes(fol) : true))
+    .filter(c => (upp ? String(c.upp || '').toLowerCase().includes(upp) : true))
+    .filter(c => (est ? c.estatus === est : true))
+    .filter(c => {
+      let ok = true;
+      if (ini) ok = ok && c.fecha_asignacion >= ini;
+      if (fin) ok = ok && c.fecha_asignacion <= fin;
+      return ok;
+    });
+});
+
+function verDetalle(c) {
+  detalle.value = JSON.parse(JSON.stringify(c));
+}
+
+/* ===================== UI helpers ===================== */
+function badgeEstatusClase(estatus) {
+  if (estatus === 'Concluido') return 'badge--activo';
+  if (estatus === 'Rechazado') return 'badge--inactivo';
+  if (estatus === 'Pendiente') return 'badge--proceso';
+  return 'badge--proceso';
+}
+</script>
+
+<style scoped>
+/* Header acciones */
+.modulo-acciones { margin-bottom: 20px; }
+.modulo-acciones-titulo { display:block; font-size:14px; margin-bottom:8px; color:#333; font-weight:900; }
+.modulo-acciones-botones { display:flex; flex-wrap:wrap; gap:6px; }
+
+/* Botones */
+.sistpec-btn-accion{
+  border:none; padding:8px 14px; font-size:12px; font-weight:900;
+  text-transform:uppercase; border-radius:4px; cursor:pointer;
+  background:#2f6b32; color:#fff; letter-spacing:0.4px;
+}
+.sistpec-btn-accion.active{ background:#244e26; }
+
+.modulo-contenido { margin-top: 10px; }
+.subtitulo { font-size:18px; margin:10px 0 15px; color:#333; }
+.subtitulo-secundario { font-size:16px; margin:16px 0 10px; color:#333; }
+
+/* Info */
+.sistpec-info-box{
+  margin-top:10px; padding:10px 14px; border-radius:4px;
+  background:#e1f3e1; border:1px solid #c3e6c3;
+}
+.sistpec-info-text{ margin:0; font-size:13px; color:#225522; }
+
+/* Alertas */
+.modulo-alert{ margin-bottom:12px; padding:10px 14px; border-radius:4px; font-size:13px; }
+.modulo-alert--error{ background:#fbeaea; border:1px solid #f5c2c2; color:#7a1f1f; }
+.modulo-alert--success{ background:#e1f3e1; border:1px solid #c3e6c3; color:#225522; }
+
+/* filtros grid */
+.sistpec-search-bar{
+  display:grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:12px; margin-bottom:16px;
+}
+.fechas-bar{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.sistpec-form-group{ display:flex; flex-direction:column; gap:4px; }
+.sistpec-form-group label{ font-size:13px; font-weight:900; color:#444; }
+.sistpec-form-group input,
+.sistpec-form-group select{
+  padding:8px 10px; border-radius:4px; border:1px solid #ccc;
+  font-size:14px; outline:none;
+}
+.sistpec-form-group input:focus,
+.sistpec-form-group select:focus{
+  border-color:#2f6b32;
+  box-shadow:0 0 0 1px rgba(47, 107, 50, 0.15);
+}
+
+.sistpec-search-actions{
+  display:flex; align-items:flex-end; gap:8px; justify-content:flex-end;
+}
+
+/* botones */
+.sistpec-btn-primary{
+  background:#2f6b32; color:#fff; border:none;
+  padding:8px 18px; border-radius:4px;
+  font-size:13px; font-weight:900; cursor:pointer;
+}
+.sistpec-btn-primary:hover{ background:#244e26; }
+
+.sistpec-btn-secondary{
+  background:#e0e0e0; color:#333; border:none;
+  padding:8px 18px; border-radius:4px;
+  font-size:13px; font-weight:900; cursor:pointer;
+}
+.sistpec-btn-secondary:hover{ background:#d0d0d0; }
+
+.sistpec-btn-sm{ padding:5px 10px; font-size:11px; }
+
+/* tabla */
+.sistpec-table-wrapper{ width:100%; overflow-x:auto; }
+.sistpec-table{ width:100%; border-collapse:collapse; font-size:13px; }
+.sistpec-table thead{ background:#7a061e; color:#fff; }
+.sistpec-table th, .sistpec-table td{ padding:8px 10px; border:1px solid #ddd; text-align:left; }
+.sistpec-table tbody tr:nth-child(even){ background:#fafafa; }
+.sin-resultados{ text-align:center; color:#777; }
+
+.sistpec-edit-panel{
+  margin-top:20px; padding-top:10px; border-top:1px dashed #ccc;
+}
+
+.badge{ display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:900; }
+.badge--activo{ background:#e1f3e1; color:#225522; border:1px solid #c3e6c3; }
+.badge--inactivo{ background:#fbeaea; color:#7a1f1f; border:1px solid #f5c2c2; }
+.badge--proceso{ background:#fff4e5; color:#b26a00; border:1px solid #ffd7a3; }
+
+.detalle-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:8px 12px;
+  font-size:13px;
+}
+.lbl{ font-weight:900; color:#444; }
+
+.vigencia-sep{ font-size:14px; color:#666; }
+
+.sistpec-form-actions{
+  display:flex; justify-content:flex-end; gap:8px;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .sistpec-search-bar { grid-template-columns: 1fr; }
+  .fechas-bar { grid-template-columns: 1fr; }
+  .detalle-grid { grid-template-columns: 1fr; }
+}
+</style>
