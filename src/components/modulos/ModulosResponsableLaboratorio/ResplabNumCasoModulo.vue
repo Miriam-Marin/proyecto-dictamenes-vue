@@ -156,8 +156,8 @@ function scrollAlContenido() {
 }
 
 const acciones = [
-  { id: 'asignar', label: 'ASIGNAR NÚMERO DE CASO' },
-  { id: 'consultar', label: 'CONSULTAR NÚMEROS DE CASO' },
+  { id: 'asignar', label: 'ASIGNAR' },
+  { id: 'consultar', label: 'CONSULTAR' },
 ];
 
 const selectedAction = ref('asignar');
@@ -257,7 +257,7 @@ const casosFiltrados = computed(() => {
 </script>
 
 <style scoped>
-/* Reutiliza el mismo estilo que ya tienes en otros módulos (igual al de AdminUsuarios). */
+
 .modulo-acciones { 
     margin-bottom: 20px; 
 }

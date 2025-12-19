@@ -502,7 +502,7 @@ function cambiarAccion(id) {
 const descripcionAccionActual = computed(() => {
   switch (selectedAction.value) {
     case 'registrar':
-      return 'Capture resultados por muestra y emita (imprima) la hoja de resultados.';
+      return 'Capture resultados por muestra y emita la hoja de resultados.';
     case 'consultar':
       return 'Consulte resultados capturados por filtros.';
     case 'editar':
@@ -995,7 +995,7 @@ function guardarEdicionResultado() {
     }
   }
 
-  mensajeExito.value = 'Resultado actualizado (Pendiente).';
+  mensajeExito.value = 'Resultado actualizado.';
   resultadoEditando.value = null;
 }
 
@@ -1071,7 +1071,7 @@ function eliminarResultado(r) {
     caso.estatus_resultados = 'Pendiente';
   }
 
-  mensajeExito.value = 'Resultado eliminado (Pendiente).';
+  mensajeExito.value = 'Resultado eliminado.';
 }
 
 /* ===================== helpers UI ===================== */

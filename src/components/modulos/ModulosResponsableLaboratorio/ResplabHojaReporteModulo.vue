@@ -1,11 +1,7 @@
 <template>
   <section class="modulo-contenido" ref="moduloContenidoRef">
     <header class="modulo-header">
-      <h3 class="subtitulo">Administrar Hoja de reporte</h3>
-      <p class="modulo-subtitle">
-        Consulte hojas de reporte de control de campo. Capture <strong>al menos un criterio</strong>.
-        Con las coincidencias puede generar reportes y exportar.
-      </p>
+      <h3 class="subtitulo">Consultar</h3>
     </header>
 
     <!-- ALERTA: mínimo un filtro -->
@@ -57,7 +53,7 @@
       </div>
     </div>
 
-    <!-- Barra de filtros (fila 2: fechas + acciones) -->
+    <!-- Barra de filtros  -->
     <div class="sistpec-search-bar fechas-bar">
       <div class="sistpec-form-group sistpec-form-group-inline">
         <label>Fecha de reporte</label>
@@ -78,7 +74,7 @@
       </div>
     </div>
 
-    <!-- Reportes / Exportación (solo si ya buscó) -->
+    <!-- Reportes / Exportación  -->
     <div v-if="buscado" class="reportes-panel">
       <div class="reportes-header">
         <h4 class="subtitulo-secundario">Reporte de coincidencias</h4>

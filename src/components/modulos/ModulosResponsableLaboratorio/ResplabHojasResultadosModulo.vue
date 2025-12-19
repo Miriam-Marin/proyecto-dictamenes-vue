@@ -77,9 +77,6 @@
             accept="application/pdf"
             @change="onFileChange"
           />
-          <small class="sistpec-hint">
-            Solo PDF. Este módulo es demo (aún no se guarda en BD).
-          </small>
         </div>
       </div>
 
@@ -137,10 +134,6 @@
     <div v-else-if="selectedAction === 'eliminar'">
       <h3 class="subtitulo">Eliminar hoja de resultados</h3>
 
-      <div class="modulo-alert modulo-alert--info">
-        Capture al menos <strong>un criterio</strong> para filtrar y eliminar.
-      </div>
-
       <div v-if="mostrarAlerta" class="modulo-alert modulo-alert--error">
         Debe capturar <strong>al menos un criterio</strong> para realizar la consulta.
       </div>
@@ -177,7 +170,7 @@
           </div>
         </div>
 
-        <!-- ✅ Botones abajo a la derecha (como pediste) -->
+        
         <div class="sistpec-form-group sistpec-search-actions sistpec-search-actions--right">
           <button type="button" class="sistpec-btn-primary" @click="buscarEliminar">
             BUSCAR
@@ -263,8 +256,8 @@ function scrollAlContenido() {
 
 // Acciones
 const acciones = [
-  { id: 'cargar', label: 'CARGAR HOJA (PDF)' },
-  { id: 'eliminar', label: 'ELIMINAR HOJA' }
+  { id: 'cargar', label: 'CARGAR' },
+  { id: 'eliminar', label: 'ELIMINAR' }
 ];
 
 const selectedAction = ref('cargar');
@@ -275,10 +268,10 @@ const mensajeExito = ref('');
 // Descripción
 const descripcionAccionActual = computed(() => {
   if (selectedAction.value === 'cargar') {
-    return 'Cargue la hoja de resultados en PDF asociada al número de caso. (Demo: se almacena temporalmente).';
+    return 'Cargue la hoja de resultados en PDF asociada al número de caso.';
   }
   if (selectedAction.value === 'eliminar') {
-    return 'Busque hojas de resultados por criterios y elimínelas del sistema (demo).';
+    return 'Busque hojas de resultados por criterios y elimínelas del sistema.';
   }
   return '';
 });
@@ -383,7 +376,7 @@ function cargarPDF() {
     url
   });
 
-  mensajeExito.value = 'Hoja de resultados cargada correctamente (demo).';
+  mensajeExito.value = 'Hoja de resultados cargada correctamente.';
   limpiarFormulario();
 }
 
@@ -477,7 +470,7 @@ function eliminarHoja(id) {
   }
 
   hojas.value = hojas.value.filter(x => x.id !== id);
-  mensajeExito.value = 'Hoja eliminada correctamente (demo).';
+  mensajeExito.value = 'Hoja eliminada correctamente.';
 }
 </script>
 

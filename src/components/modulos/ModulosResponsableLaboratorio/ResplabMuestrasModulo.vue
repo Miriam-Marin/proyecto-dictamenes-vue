@@ -62,13 +62,7 @@
 
       <!-- ===== CAMPAÑA ===== -->
       <div v-if="tipoServicio === 'Campaña'">
-        <div class="sistpec-info-box">
-          <p class="sistpec-info-text">
-            En <strong>Campaña</strong>, el MVZ ya capturó la hoja y las muestras.
-            Aquí se <strong>coteja</strong> y se confirma la <strong>recepción</strong> (ticket).
-          </p>
-        </div>
-
+        
         <div v-if="mostrarAlertaCamp" class="modulo-alert modulo-alert--error">
           Debe capturar <strong>al menos un criterio</strong> para buscar.
         </div>
@@ -296,11 +290,6 @@
     <div v-else-if="selectedAction === 'editar'">
       <h3 class="subtitulo">Editar muestras (estado: Pendiente)</h3>
 
-      <div class="sistpec-info-box">
-        <p class="sistpec-info-text">
-          Solo se permiten ediciones cuando la muestra se encuentra en estatus <strong>Pendiente</strong>.
-        </p>
-      </div>
 
       <div v-if="mostrarAlertaEditar" class="modulo-alert modulo-alert--error">
         Debe capturar <strong>al menos un criterio</strong> para buscar.
@@ -509,12 +498,7 @@
     <div v-else-if="selectedAction === 'eliminar'">
       <h3 class="subtitulo">Eliminar muestras (estado: Pendiente)</h3>
 
-      <div class="sistpec-info-box">
-        <p class="sistpec-info-text">
-          La eliminación se permite solo si la muestra está en <strong>Pendiente</strong>.
-          (En backend puede ser baja lógica).
-        </p>
-      </div>
+    
 
       <div v-if="mostrarAlertaEliminar" class="modulo-alert modulo-alert--error">
         Debe capturar <strong>al menos un criterio</strong> para buscar.
@@ -613,10 +597,10 @@ function scrollAlContenido() {
 
 // Acciones
 const acciones = [
-  { id: 'cotejar', label: 'COTEJAR ARETES / RECEPCIÓN' },
-  { id: 'editar', label: 'EDITAR MUESTRAS (PENDIENTE)' },
-  { id: 'consultar', label: 'CONSULTAR MUESTRAS' },
-  { id: 'eliminar', label: 'ELIMINAR MUESTRAS (PENDIENTE)' }
+  { id: 'cotejar', label: 'COTEJAR / RECEPCIÓN' },
+  { id: 'editar', label: 'EDITAR' },
+  { id: 'consultar', label: 'CONSULTAR' },
+  { id: 'eliminar', label: 'ELIMINAR' }
 ];
 
 const selectedAction = ref('cotejar');
@@ -631,13 +615,13 @@ function cambiarAccion(id) {
 const descripcionAccionActual = computed(() => {
   switch (selectedAction.value) {
     case 'cotejar':
-      return 'Recepcione muestras, elija Campaña/Particular, coteje números de arete y genere el ticket.';
+      return 'Recepcione muestras, coteje números de arete y genere el ticket.';
     case 'editar':
       return 'Edite datos solo para muestras en estado Pendiente.';
     case 'consultar':
       return 'Consulte muestras por folio, UPP, MVZ, estatus y rango de fechas.';
     case 'eliminar':
-      return 'Elimine (o desactive) muestras solo si están en estado Pendiente.';
+      return 'Elimine muestras solo si están en estado Pendiente.';
     default:
       return '';
   }
@@ -789,7 +773,7 @@ function confirmarRecepcionCampania() {
     return;
   }
 
-  // ✅ CONTEO POR CANTIDAD DE MUESTRAS REGISTRADAS EN LA HOJA (NO listar folios)
+  // CONTEO POR CANTIDAD DE MUESTRAS REGISTRADAS EN LA HOJA (NO listar folios)
   const totalPorHoja = Array.isArray(loteSeleccionado.value.muestras)
     ? loteSeleccionado.value.muestras.length
     : 0;
@@ -846,7 +830,7 @@ function confirmarRecepcionParticular() {
 
   if (errores.value.length) return;
 
-  // ✅ Para Particular el conteo es la cantidad de folios capturados (muestras registradas en esa hoja)
+  
   abrirVentanaTicket({
     tipo_servicio: 'Particular',
     mvz: part.value.mvz_nombre,
