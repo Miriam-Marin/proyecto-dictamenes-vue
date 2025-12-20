@@ -251,7 +251,7 @@ function cambiarAccion(id) {
 
 /**
  * DEMO: estas "hojas de control" simulan registros previos del MVZ.
- * Cuando asignas, el caso se guarda en el mismo registro del folio.
+ * Cuando se asigna, el caso se guarda en el mismo registro del folio.
  */
 const hojasDemo = ref([
   {
