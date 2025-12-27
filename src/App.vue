@@ -78,7 +78,7 @@ const menusPorRol = {
   ],
 
   mvzAutorizado: [
-    { texto: 'hoja de reporte', modulo: 'mvzAdminHojaReporte' },
+    { texto: 'Hoja de reporte', modulo: 'mvzAdminHojaReporte' },
     { texto: 'Propietarios', modulo: 'mvzAdminPropietario' },
     { texto: 'UPP', modulo: 'mvzAdminUpp' },
     { texto: 'Número de caso', modulo: 'mvzAdminNumCaso' },

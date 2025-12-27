@@ -89,7 +89,7 @@
               <th>Fierro</th>
 
               <th>Tarjeta</th>
-              <th>Resultado</th>
+              <th>Resultado (tarjeta)</th>
               <th>Tubo</th>
               <th>Estado</th>
               <th>Fecha captura</th>
@@ -109,12 +109,13 @@
 
               <td>{{ m.tarjeta }}</td>
 
+              <!-- Resultado (3 opciones) -->
               <td>
                 <select v-model="m.resultado_tarjeta" class="input-mini">
                   <option value="">-</option>
-                  <option value="N">N</option>
-                  <option value="P">P</option>
-                  <option value="E">E</option>
+                  <option v-for="op in OPCIONES_RESULTADO_TARJETA" :key="op" :value="op">
+                    {{ op }}
+                  </option>
                 </select>
               </td>
 
@@ -133,8 +134,23 @@
                 <input v-model="m.fecha_captura" type="date" class="input-mini" />
               </td>
 
+              <!-- Observaciones (catálogo + Otra) -->
               <td class="obs-cell">
-                <input v-model="m.observaciones" type="text" class="input-obs" placeholder="Opcional" />
+                <select v-model="m.obs_opcion" class="input-mini">
+                  <option value="">-</option>
+                  <option v-for="op in OPCIONES_OBSERVACION" :key="op" :value="op">
+                    {{ op }}
+                  </option>
+                </select>
+
+                <input
+                  v-if="m.obs_opcion === 'Otra'"
+                  v-model="m.obs_otro"
+                  type="text"
+                  class="input-obs"
+                  placeholder="Escriba la observación..."
+                  style="margin-top:6px;"
+                />
               </td>
             </tr>
           </tbody>
@@ -233,7 +249,7 @@
                   {{ r.estado }}
                 </span>
               </td>
-              <td>{{ r.observaciones?.trim() ? r.observaciones : '-' }}</td>
+              <td>{{ (r.observaciones && r.observaciones.trim()) ? r.observaciones : '-' }}</td>
             </tr>
 
             <tr v-if="resultadosConsulta.length === 0">
@@ -288,7 +304,7 @@
               <th>CC No.</th>
               <th>Tarjeta</th>
               <th>Arete</th>
-              <th>Resultado</th>
+              <th>Resultado (tarjeta)</th>
               <th>Tubo</th>
               <th>Estado</th>
               <th>Fecha</th>
@@ -304,12 +320,13 @@
               <td>{{ r.tarjeta }}</td>
               <td>{{ r.arete }}</td>
 
+              <!-- Resultado (3 opciones) -->
               <td>
                 <select v-model="r.resultado_tarjeta" class="input-mini">
                   <option value="">-</option>
-                  <option value="N">N</option>
-                  <option value="P">P</option>
-                  <option value="E">E</option>
+                  <option v-for="op in OPCIONES_RESULTADO_TARJETA" :key="op" :value="op">
+                    {{ op }}
+                  </option>
                 </select>
               </td>
 
@@ -324,8 +341,23 @@
 
               <td><input v-model="r.fecha_captura" type="date" class="input-mini" /></td>
 
+              <!-- Observaciones (catálogo + Otra) -->
               <td class="obs-cell">
-                <input v-model="r.observaciones" type="text" class="input-obs" />
+                <select v-model="r.obs_opcion" class="input-mini">
+                  <option value="">-</option>
+                  <option v-for="op in OPCIONES_OBSERVACION" :key="op" :value="op">
+                    {{ op }}
+                  </option>
+                </select>
+
+                <input
+                  v-if="r.obs_opcion === 'Otra'"
+                  v-model="r.obs_otro"
+                  type="text"
+                  class="input-obs"
+                  placeholder="Escriba la observación..."
+                  style="margin-top:6px;"
+                />
               </td>
 
               <td>
@@ -342,7 +374,7 @@
         </table>
 
         <small class="ayuda">
-          Solo se permite editar cuando el estado es <strong>Pendiente</strong>. Si está <strong>Entregado</strong>, ya no se puede editar.:contentReference[oaicite:3]{index=3}
+          Solo se permite editar cuando el estado es <strong>Pendiente</strong>. Si está <strong>Entregado</strong>, ya no se puede editar.
         </small>
       </div>
 
@@ -410,7 +442,7 @@
               <td>{{ r.tubo || '-' }}</td>
               <td>{{ r.fecha_captura || '-' }}</td>
               <td><span class="badge badge--proceso">Pendiente</span></td>
-              <td>{{ r.observaciones?.trim() ? r.observaciones : '-' }}</td>
+              <td>{{ (r.observaciones && r.observaciones.trim()) ? r.observaciones : '-' }}</td>
               <td>
                 <button class="sistpec-btn-danger sistpec-btn-sm" type="button" @click="eliminarResultado(r)">
                   ELIMINAR
@@ -425,7 +457,7 @@
         </table>
 
         <small class="ayuda">
-          El sistema solo permite eliminar si el resultado está <strong>Pendiente</strong> y debe guardar registro de quién lo hizo.:contentReference[oaicite:4]{index=4}
+          El sistema solo permite eliminar si el resultado está <strong>Pendiente</strong> y debe guardar registro de quién lo hizo.
         </small>
       </div>
 
@@ -481,7 +513,7 @@
             <td>{{ m.tubo || '-' }}</td>
             <td>{{ m.estado || '-' }}</td>
             <td>{{ m.fecha_captura || '-' }}</td>
-            <td>{{ m.observaciones || '-' }}</td>
+            <td>{{ (m.observaciones && m.observaciones.trim()) ? m.observaciones : '-' }}</td>
           </tr>
         </tbody>
       </table>
@@ -496,7 +528,6 @@
 <script setup>
 import { computed, nextTick, ref } from 'vue';
 
-
 const moduloContenidoRef = ref(null);
 const printAreaRef = ref(null);
 
@@ -507,6 +538,38 @@ function scrollAlContenido() {
     const offset = 90;
     window.scrollTo({ top: rect.top + window.scrollY - offset, behavior: 'smooth' });
   });
+}
+
+/* ========= Catálogos (NUEVO) ========= */
+const OPCIONES_RESULTADO_TARJETA = ['Positivo', 'Negativo', 'No aplica'];
+const OPCIONES_OBSERVACION = ['Hemólisis', 'Contaminada', 'Insuficiente', 'Otra'];
+
+function normalizarObservacion(row) {
+  if (!row) return;
+  if (row.obs_opcion === 'Otra') {
+    row.observaciones = String(row.obs_otro || '').trim();
+  } else if (row.obs_opcion) {
+    row.observaciones = row.obs_opcion; // Hemólisis/Contaminada/Insuficiente
+  } else {
+    row.observaciones = '';
+  }
+}
+
+function hidratarObservacionUI(row) {
+  if (!row) return;
+  const txt = String(row.observaciones || '').trim();
+  if (!txt) {
+    row.obs_opcion = '';
+    row.obs_otro = '';
+    return;
+  }
+  if (['Hemólisis', 'Contaminada', 'Insuficiente'].includes(txt)) {
+    row.obs_opcion = txt;
+    row.obs_otro = '';
+  } else {
+    row.obs_opcion = 'Otra';
+    row.obs_otro = txt;
+  }
 }
 
 /* Acciones */
@@ -566,11 +629,7 @@ function limpiarFiltros() {
 const cabeceraEncontrada = ref(false);
 const cabecera = ref({ cc_no: '', caso: '', upp: '', mvz: '', fecha: '' });
 
-/* ========= DEMO "BASE" =========
-   Esto simula lo que vendrá de BD:
-   - datos precargados por MVZ (arete/especie/edad/raza/sexo/fierro)
-   - y campos de resultados que capturan recepción/lab.
-*/
+/* ========= DEMO "BASE" ========= */
 function hoyISO() {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -579,7 +638,7 @@ function hoyISO() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-/* Simula registros existentes (muestras ya recepcionadas / cotejadas) */
+/* Simula registros existentes */
 const dbResultados = ref([
   {
     id: 1,
@@ -589,7 +648,6 @@ const dbResultados = ref([
     mvz: 'Jacinto Anastasio Cortés',
     fecha: hoyISO(),
 
-    // precargado (campo)
     arete: '3064155716',
     especie: 'Bov',
     edad_meses: 127,
@@ -597,14 +655,17 @@ const dbResultados = ref([
     sexo: 'H',
     fierro: 'AA',
 
-    // identificación de laboratorio / hoja
     tarjeta: '1',
 
-    // captura resultados
     resultado_tarjeta: '',
     tubo: '',
     estado: 'Pendiente',
     fecha_captura: hoyISO(),
+
+    // NUEVO UI (no rompe nada)
+    obs_opcion: '',
+    obs_otro: '',
+
     observaciones: ''
   },
   {
@@ -628,6 +689,10 @@ const dbResultados = ref([
     tubo: '',
     estado: 'Pendiente',
     fecha_captura: hoyISO(),
+
+    obs_opcion: '',
+    obs_otro: '',
+
     observaciones: ''
   },
   {
@@ -647,11 +712,18 @@ const dbResultados = ref([
 
     tarjeta: '1',
 
-    resultado_tarjeta: 'N',
+    // ajustado al nuevo catálogo
+    resultado_tarjeta: 'Negativo',
     tubo: '1',
     estado: 'Entregado',
     fecha_captura: hoyISO(),
-    observaciones: 'Entregado al MVZ.'
+
+    // ejemplo: una observación de catálogo
+    observaciones: 'Hemólisis',
+
+    // UI (se hidrata al cargar)
+    obs_opcion: '',
+    obs_otro: ''
   }
 ]);
 
@@ -708,8 +780,13 @@ async function buscarParaCaptura() {
 
   setCabeceraDesde(rows);
 
-  // Copia editable para capturar 
-  muestrasCaptura.value = rows.map(r => ({ ...r }));
+  // Copia editable para capturar + hidrata UI obs
+  muestrasCaptura.value = rows.map(r => {
+    const x = { ...r };
+    hidratarObservacionUI(x);
+    return x;
+  });
+
   mensajeExito.value = `Se cargaron ${muestrasCaptura.value.length} registros.`;
   scrollAlContenido();
 }
@@ -718,10 +795,16 @@ function validarCaptura(rows) {
   const faltantes = [];
   rows.forEach((m, i) => {
     const fila = i + 1;
+
     if (!String(m.resultado_tarjeta || '').trim()) faltantes.push(`Fila ${fila}: falta Resultado (Tarjeta).`);
     if (!String(m.tubo || '').trim()) faltantes.push(`Fila ${fila}: falta Tubo.`);
     if (!String(m.fecha_captura || '').trim()) faltantes.push(`Fila ${fila}: falta Fecha de captura.`);
     if (!String(m.estado || '').trim()) faltantes.push(`Fila ${fila}: falta Estado.`);
+
+    // Observación "Otra" requiere texto
+    if (m.obs_opcion === 'Otra' && !String(m.obs_otro || '').trim()) {
+      faltantes.push(`Fila ${fila}: capture la observación manual (Otra).`);
+    }
   });
   return faltantes;
 }
@@ -740,16 +823,16 @@ async function guardarResultados() {
     return;
   }
 
+  // normaliza observaciones antes de validar/guardar
+  muestrasCaptura.value.forEach(row => normalizarObservacion(row));
+
   const faltantes = validarCaptura(muestrasCaptura.value);
   if (faltantes.length) {
     errores.value = faltantes;
     return;
   }
 
-  // TODO API:
-  // POST /api/brucelosis/resultados/guardar  body: { cc_no, caso, resultados: [...] }
-
-  // DEMO: “persistir” en la base simulada
+  // DEMO persist
   muestrasCaptura.value.forEach(editRow => {
     const idx = dbResultados.value.findIndex(x => x.id === editRow.id);
     if (idx >= 0) dbResultados.value[idx] = { ...dbResultados.value[idx], ...editRow };
@@ -775,7 +858,10 @@ async function consultarResultados() {
   if (!rows.length) return;
 
   setCabeceraDesde(rows);
+
+  // lectura (normal) — no requiere UI
   resultadosConsulta.value = rows.map(r => ({ ...r }));
+
   mensajeExito.value = `Se cargaron ${resultadosConsulta.value.length} resultados.`;
   scrollAlContenido();
 }
@@ -795,8 +881,12 @@ async function cargarPendientesParaEditar() {
 
   if (!rows.length) return;
 
-  // Editable
-  resultadosEditar.value = rows.map(r => ({ ...r }));
+  resultadosEditar.value = rows.map(r => {
+    const x = { ...r };
+    hidratarObservacionUI(x);
+    return x;
+  });
+
   mensajeExito.value = `Se cargaron ${resultadosEditar.value.length} resultados Pendientes.`;
   scrollAlContenido();
 }
@@ -810,15 +900,14 @@ async function guardarEdicion(r) {
     return;
   }
 
-  // Validación mínima (mismos campos de captura)
+  // normaliza observación antes de validar/guardar
+  normalizarObservacion(r);
+
   const faltantes = validarCaptura([r]);
   if (faltantes.length) {
     errores.value = faltantes;
     return;
   }
-
-  // TODO API:
-  // PUT /api/brucelosis/resultados/:id
 
   // DEMO persist
   const idx = dbResultados.value.findIndex(x => x.id === r.id);
@@ -861,13 +950,7 @@ async function eliminarResultado(r) {
   );
   if (!ok) return;
 
-  // TODO API:
-  // DELETE /api/brucelosis/resultados/:id  (y registrar auditoría quién lo hizo)
-
-  // DEMO delete
   dbResultados.value = dbResultados.value.filter(x => x.id !== r.id);
-
-  // refresca vista eliminar
   resultadosEliminar.value = resultadosEliminar.value.filter(x => x.id !== r.id);
 
   mensajeExito.value = 'Resultado eliminado correctamente.';
@@ -877,12 +960,16 @@ async function eliminarResultado(r) {
 const printRows = ref([]);
 
 function imprimirPDF(origen) {
-  // arma filas a imprimir dependiendo de vista
-  if (origen === 'captura') printRows.value = muestrasCaptura.value.map(x => ({ ...x }));
-  else if (origen === 'consulta') printRows.value = resultadosConsulta.value.map(x => ({ ...x }));
-  else printRows.value = [];
+  if (origen === 'captura') {
+    // normaliza observaciones para impresión
+    muestrasCaptura.value.forEach(row => normalizarObservacion(row));
+    printRows.value = muestrasCaptura.value.map(x => ({ ...x }));
+  } else if (origen === 'consulta') {
+    printRows.value = resultadosConsulta.value.map(x => ({ ...x }));
+  } else {
+    printRows.value = [];
+  }
 
-  // fuerza arriba para impresión limpia
   window.scrollTo({ top: 0, behavior: 'instant' });
   nextTick(() => window.print());
 }
@@ -911,7 +998,7 @@ function imprimirPDF(origen) {
 .modulo-alert--error { background:#fbeaea; border:1px solid #f5c2c2; color:#7a1f1f; }
 .modulo-alert--success { background:#e1f3e1; border:1px solid #c3e6c3; color:#225522; }
 
-/* ====== Filtros (botones a la derecha y uno debajo del otro) ====== */
+/* ====== Filtros ====== */
 .sistpec-search-bar {
   display:grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -931,16 +1018,8 @@ function imprimirPDF(origen) {
   outline:none;
 }
 
-.sistpec-search-actions.right {
-  display:flex;
-  justify-content:flex-end;
-}
-.acciones-vertical{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-top: 10px; /* los baja un poco */
-}
+.sistpec-search-actions.right { display:flex; justify-content:flex-end; }
+.acciones-vertical{ display:flex; flex-direction:column; gap:10px; margin-top: 10px; }
 
 .sistpec-btn-primary {
   background:#2f6b32; color:#fff; border:none;
@@ -1034,3 +1113,4 @@ function imprimirPDF(origen) {
   .cabecera-info { grid-template-columns: 1fr; }
 }
 </style>
+

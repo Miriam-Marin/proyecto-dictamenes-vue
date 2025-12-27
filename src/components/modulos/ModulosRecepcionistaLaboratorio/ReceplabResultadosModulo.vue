@@ -109,12 +109,13 @@
 
               <td>{{ m.tarjeta }}</td>
 
+              <!-- Resultado (tarjeta): Positivo/Negativo/No aplica -->
               <td>
                 <select v-model="m.resultado_tarjeta" class="input-mini">
                   <option value="">-</option>
-                  <option value="N">N</option>
-                  <option value="P">P</option>
-                  <option value="E">E</option>
+                  <option v-for="op in OPCIONES_RESULTADO_TARJETA" :key="op" :value="op">
+                    {{ op }}
+                  </option>
                 </select>
               </td>
 
@@ -133,12 +134,22 @@
                 <input v-model="m.fecha_captura" type="date" class="input-mini" />
               </td>
 
+              <!-- Observaciones: catálogo + Otra -->
               <td class="obs-cell">
+                <select v-model="m.obs_opcion" class="input-mini">
+                  <option value="">-</option>
+                  <option v-for="op in OPCIONES_OBSERVACION" :key="op" :value="op">
+                    {{ op }}
+                  </option>
+                </select>
+
                 <input
-                  v-model="m.observaciones"
+                  v-if="m.obs_opcion === 'Otra'"
+                  v-model="m.obs_otro"
                   type="text"
                   class="input-obs"
-                  placeholder="Opcional"
+                  placeholder="Escriba la observación..."
+                  style="margin-top:6px;"
                 />
               </td>
             </tr>
@@ -317,9 +328,9 @@
               <td>
                 <select v-model="r.resultado_tarjeta" class="input-mini">
                   <option value="">-</option>
-                  <option value="N">N</option>
-                  <option value="P">P</option>
-                  <option value="E">E</option>
+                  <option v-for="op in OPCIONES_RESULTADO_TARJETA" :key="op" :value="op">
+                    {{ op }}
+                  </option>
                 </select>
               </td>
 
@@ -334,8 +345,23 @@
 
               <td><input v-model="r.fecha_captura" type="date" class="input-mini" /></td>
 
+              <!-- Observaciones: catálogo + Otra -->
               <td class="obs-cell">
-                <input v-model="r.observaciones" type="text" class="input-obs" />
+                <select v-model="r.obs_opcion" class="input-mini">
+                  <option value="">-</option>
+                  <option v-for="op in OPCIONES_OBSERVACION" :key="op" :value="op">
+                    {{ op }}
+                  </option>
+                </select>
+
+                <input
+                  v-if="r.obs_opcion === 'Otra'"
+                  v-model="r.obs_otro"
+                  type="text"
+                  class="input-obs"
+                  placeholder="Escriba la observación..."
+                  style="margin-top:6px;"
+                />
               </td>
 
               <td>
@@ -430,7 +456,11 @@
               <td><span class="badge badge--proceso">Pendiente</span></td>
               <td>{{ r.observaciones?.trim() ? r.observaciones : '-' }}</td>
               <td>
-                <button class="sistpec-btn-danger sistpec-btn-sm" type="button" @click="eliminarResultado(r)">
+                <button
+                  class="sistpec-btn-danger sistpec-btn-sm"
+                  type="button"
+                  @click="eliminarResultado(r)"
+                >
                   ELIMINAR
                 </button>
               </td>
@@ -501,7 +531,7 @@
             <td>{{ m.tubo || '-' }}</td>
             <td>{{ m.estado || '-' }}</td>
             <td>{{ m.fecha_captura || '-' }}</td>
-            <td>{{ m.observaciones || '-' }}</td>
+            <td>{{ m.observaciones?.trim() ? m.observaciones : '-' }}</td>
           </tr>
         </tbody>
       </table>
@@ -526,6 +556,34 @@ function scrollAlContenido() {
     const offset = 90;
     window.scrollTo({ top: rect.top + window.scrollY - offset, behavior: 'smooth' });
   });
+}
+
+/* ========= NUEVO: Catálogos ========= */
+const OPCIONES_RESULTADO_TARJETA = ['Positivo', 'Negativo', 'No aplica'];
+const OPCIONES_OBSERVACION = ['Hemólisis', 'Contaminada', 'Insuficiente', 'Otra'];
+
+function normalizarObservacion(row) {
+  if (!row) return;
+  if (row.obs_opcion === 'Otra') row.observaciones = String(row.obs_otro || '').trim();
+  else if (row.obs_opcion) row.observaciones = row.obs_opcion;
+  else row.observaciones = '';
+}
+
+function hidratarObservacionUI(row) {
+  if (!row) return;
+  const txt = String(row.observaciones || '').trim();
+  if (!txt) {
+    row.obs_opcion = '';
+    row.obs_otro = '';
+    return;
+  }
+  if (['Hemólisis', 'Contaminada', 'Insuficiente'].includes(txt)) {
+    row.obs_opcion = txt;
+    row.obs_otro = '';
+  } else {
+    row.obs_opcion = 'Otra';
+    row.obs_otro = txt;
+  }
 }
 
 /* Acciones */
@@ -613,7 +671,10 @@ const dbResultados = ref([
     tubo: '',
     estado: 'Pendiente',
     fecha_captura: hoyISO(),
-    observaciones: ''
+    observaciones: '',
+    // NUEVO UI (para select)
+    obs_opcion: '',
+    obs_otro: ''
   }
 ]);
 
@@ -667,7 +728,14 @@ async function buscarParaCaptura() {
   if (!rows.length) return;
 
   setCabeceraDesde(rows);
-  muestrasCaptura.value = rows.map((r) => ({ ...r }));
+
+  // copia editable + hidrata UI observaciones
+  muestrasCaptura.value = rows.map((r) => {
+    const x = { ...r, obs_opcion: r.obs_opcion || '', obs_otro: r.obs_otro || '' };
+    hidratarObservacionUI(x);
+    return x;
+  });
+
   mensajeExito.value = `Se cargaron ${muestrasCaptura.value.length} registros.`;
   scrollAlContenido();
 }
@@ -680,6 +748,11 @@ function validarCaptura(rows) {
     if (!String(m.tubo || '').trim()) faltantes.push(`Fila ${fila}: falta Tubo.`);
     if (!String(m.fecha_captura || '').trim()) faltantes.push(`Fila ${fila}: falta Fecha de captura.`);
     if (!String(m.estado || '').trim()) faltantes.push(`Fila ${fila}: falta Estado.`);
+
+    // si Observación = Otra, requiere texto
+    if (m.obs_opcion === 'Otra' && !String(m.obs_otro || '').trim()) {
+      faltantes.push(`Fila ${fila}: capture la observación manual (Otra).`);
+    }
   });
   return faltantes;
 }
@@ -697,6 +770,9 @@ async function guardarResultados() {
     errores.value.push('Primero cargue registros con la búsqueda.');
     return;
   }
+
+  // normaliza observaciones antes de validar/guardar
+  muestrasCaptura.value.forEach((row) => normalizarObservacion(row));
 
   const faltantes = validarCaptura(muestrasCaptura.value);
   if (faltantes.length) {
@@ -750,7 +826,12 @@ async function cargarPendientesParaEditar() {
 
   if (!rows.length) return;
 
-  resultadosEditar.value = rows.map((r) => ({ ...r }));
+  resultadosEditar.value = rows.map((r) => {
+    const x = { ...r, obs_opcion: r.obs_opcion || '', obs_otro: r.obs_otro || '' };
+    hidratarObservacionUI(x);
+    return x;
+  });
+
   mensajeExito.value = `Se cargaron ${resultadosEditar.value.length} resultados Pendientes.`;
   scrollAlContenido();
 }
@@ -758,6 +839,9 @@ async function cargarPendientesParaEditar() {
 async function guardarEdicion(r) {
   errores.value = [];
   mensajeExito.value = '';
+
+  // normaliza observaciones antes de validar/guardar
+  normalizarObservacion(r);
 
   const faltantes = validarCaptura([r]);
   if (faltantes.length) {
@@ -815,9 +899,15 @@ async function eliminarResultado(r) {
 const printRows = ref([]);
 
 function imprimirPDF(origen) {
-  if (origen === 'captura') printRows.value = muestrasCaptura.value.map((x) => ({ ...x }));
-  else if (origen === 'consulta') printRows.value = resultadosConsulta.value.map((x) => ({ ...x }));
-  else printRows.value = [];
+  if (origen === 'captura') {
+    // normaliza observaciones para impresión
+    muestrasCaptura.value.forEach((row) => normalizarObservacion(row));
+    printRows.value = muestrasCaptura.value.map((x) => ({ ...x }));
+  } else if (origen === 'consulta') {
+    printRows.value = resultadosConsulta.value.map((x) => ({ ...x }));
+  } else {
+    printRows.value = [];
+  }
 
   window.scrollTo({ top: 0, behavior: 'instant' });
   nextTick(() => window.print());
@@ -868,20 +958,10 @@ function imprimirPDF(origen) {
 }
 
 /* BOTONES a la derecha + vertical + más abajo */
-.sistpec-search-actions.right {
-  display:flex;
-  justify-content:flex-end;
-}
-.acciones-vertical{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-top: 10px;
-}
+.sistpec-search-actions.right { display:flex; justify-content:flex-end; }
+.acciones-vertical{ display:flex; flex-direction:column; gap:10px; margin-top: 10px; }
 .acciones-vertical .sistpec-btn-primary,
-.acciones-vertical .sistpec-btn-secondary{
-  width: 220px;
-}
+.acciones-vertical .sistpec-btn-secondary{ width: 220px; }
 
 .sistpec-btn-primary {
   background:#2f6b32; color:#fff; border:none;
@@ -981,3 +1061,4 @@ function imprimirPDF(origen) {
   }
 }
 </style>
+
