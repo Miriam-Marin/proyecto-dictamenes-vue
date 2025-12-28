@@ -49,8 +49,13 @@
 
           <div class="sistpec-form-group sistpec-form-group--actions">
             <label>&nbsp;</label>
-            <button type="button" class="sistpec-btn-secondary" @click="buscarHoja">
-              BUSCAR FOLIO
+            <button
+              type="button"
+              class="sistpec-btn-secondary"
+              :disabled="loadingBuscarHoja"
+              @click="buscarHoja"
+            >
+              {{ loadingBuscarHoja ? "BUSCANDO..." : "BUSCAR FOLIO" }}
             </button>
           </div>
         </div>
@@ -82,9 +87,9 @@
 
           <div class="sistpec-form-row">
             <div class="sistpec-form-group">
-              <label>Número de caso (se asignará)</label>
-              <input :value="siguienteCaso" type="text" readonly />
-              <small class="hint">Se genera en automático para el ejemplo (demo). Si lo necesitas manual, lo cambiamos.</small>
+              <label>Número de caso (generado por el sistema)</label>
+              <input :value="numeroCasoAsignado || ''" type="text" readonly placeholder="Se mostrará al asignar" />
+              <small class="hint">El número de caso se genera en el backend.</small>
             </div>
 
             <div class="sistpec-form-group">
@@ -94,10 +99,10 @@
           </div>
 
           <div class="sistpec-form-actions">
-            <button class="sistpec-btn-primary" type="submit">
-              ASIGNAR NÚMERO DE CASO
+            <button class="sistpec-btn-primary" type="submit" :disabled="loadingAsignar">
+              {{ loadingAsignar ? "ASIGNANDO..." : "ASIGNAR NÚMERO DE CASO" }}
             </button>
-            <button class="sistpec-btn-secondary" type="button" @click="limpiarFormulario">
+            <button class="sistpec-btn-secondary" type="button" :disabled="loadingAsignar" @click="limpiarFormulario">
               LIMPIAR
             </button>
           </div>
@@ -156,8 +161,12 @@
         </div>
 
         <div class="sistpec-form-group sistpec-search-actions">
-          <button type="button" class="sistpec-btn-primary" @click="buscar">BUSCAR</button>
-          <button type="button" class="sistpec-btn-secondary" @click="limpiarFiltros">LIMPIAR FILTROS</button>
+          <button type="button" class="sistpec-btn-primary" :disabled="loadingConsulta" @click="buscar">
+            {{ loadingConsulta ? "BUSCANDO..." : "BUSCAR" }}
+          </button>
+          <button type="button" class="sistpec-btn-secondary" :disabled="loadingConsulta" @click="limpiarFiltros">
+            LIMPIAR FILTROS
+          </button>
         </div>
       </div>
 
@@ -175,21 +184,21 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="c in casosFiltrados" :key="c.id">
-              <td>{{ c.folio }}</td>
-              <td>{{ c.caso || '—' }}</td>
-              <td>{{ c.fecha }}</td>
-              <td>{{ c.upp }}</td>
-              <td>{{ c.propietario }}</td>
-              <td>{{ c.mvz }}</td>
+            <tr v-for="c in resultados" :key="c.id_caso || c.id || c.numero_caso + '-' + c.folio">
+              <td>{{ c.folio || '—' }}</td>
+              <td>{{ c.numero_caso || c.caso || '—' }}</td>
+              <td>{{ c.fecha || c.fecha_asignacion || '—' }}</td>
+              <td>{{ c.upp || (c.clave_upp ? (c.clave_upp + ' — ' + (c.nombre_upp || '')) : '—') }}</td>
+              <td>{{ c.propietario || '—' }}</td>
+              <td>{{ c.mvz || '—' }}</td>
               <td>
-                <span class="badge" :class="c.estatus==='Pendiente' ? 'badge--proceso' : 'badge--activo'">
-                  {{ c.estatus }}
+                <span class="badge" :class="(c.estatus==='Pendiente') ? 'badge--proceso' : 'badge--activo'">
+                  {{ c.estatus || '—' }}
                 </span>
               </td>
             </tr>
 
-            <tr v-if="casosFiltrados.length === 0">
+            <tr v-if="resultados.length === 0">
               <td colspan="7" class="sin-resultados">No se encontraron coincidencias.</td>
             </tr>
           </tbody>
@@ -204,7 +213,8 @@
 </template>
 
 <script setup>
-import { computed, ref, nextTick } from 'vue';
+import { computed, ref, nextTick } from "vue";
+import api from "@/services/api";
 
 defineProps({ codigo: String, rol: String });
 
@@ -214,192 +224,202 @@ function scrollAlContenido() {
     if (!moduloContenidoRef.value) return;
     const offset = 90;
     const top = moduloContenidoRef.value.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: 'smooth' });
+    window.scrollTo({ top, behavior: "smooth" });
   });
 }
 
 const acciones = [
-  { id: 'asignar', label: 'ASIGNAR' },
-  { id: 'consultar', label: 'CONSULTAR' },
+  { id: "asignar", label: "ASIGNAR" },
+  { id: "consultar", label: "CONSULTAR" },
 ];
 
-const selectedAction = ref('asignar');
+const selectedAction = ref("asignar");
 const errores = ref([]);
-const mensajeExito = ref('');
+const mensajeExito = ref("");
 const buscado = ref(false);
 const mostrarAlerta = ref(false);
 
 const descripcionAccionActual = computed(() => {
-  if (selectedAction.value === 'asignar') {
-    return 'Asigna un número de caso a una hoja de control (folio) registrada previamente por el MVZ.';
+  if (selectedAction.value === "asignar") {
+    return "Asigna un número de caso a una hoja de control (folio) registrada previamente por el MVZ.";
   }
-  if (selectedAction.value === 'consultar') {
-    return 'Consulta números de caso por folio, caso, UPP, MVZ, fecha o estatus.';
+  if (selectedAction.value === "consultar") {
+    return "Consulta números de caso por folio, caso, UPP, MVZ, fecha o estatus (base de datos).";
   }
-  return '';
+  return "";
 });
 
 function cambiarAccion(id) {
   selectedAction.value = id;
   errores.value = [];
-  mensajeExito.value = '';
+  mensajeExito.value = "";
   buscado.value = false;
   mostrarAlerta.value = false;
+
   limpiarFormulario();
+  limpiarFiltros();
+  resultados.value = [];
+
   scrollAlContenido();
 }
 
-/**
- * DEMO: estas "hojas de control" simulan registros previos del MVZ.
- * Cuando se asigna, el caso se guarda en el mismo registro del folio.
- */
-const hojasDemo = ref([
-  {
-    id: 1,
-    folio: 'HC-2025-000123',
-    caso: null,
-    fecha: '2025-12-01',
-    upp: 'VER-0001-2025',
-    propietario: 'José López Ramírez',
-    mvz: 'MVZ Ana López',
-    estatus: 'Pendiente',
-  },
-  {
-    id: 2,
-    folio: 'HC-2025-000124',
-    caso: 'BR25-002',
-    fecha: '2025-12-03',
-    upp: 'VER-0020-2025',
-    propietario: 'María Hernández Torres',
-    mvz: 'MVZ Juan Pérez',
-    estatus: 'Concluido',
-  },
-]);
-
-const nuevoCaso = ref({ folio: '' });
+// =====================
+// ASIGNAR (BD real)
+// =====================
+const nuevoCaso = ref({ folio: "" });
 const hojaEncontrada = ref(false);
-const datosHoja = ref({ folio: '', upp: '', mvz: '', propietario: '', fecha: '', estatus: '' });
-const hojaIdSeleccionada = ref(null);
+const datosHoja = ref({
+  id_hoja: null,
+  folio: "",
+  id_upp: null,
+  upp: "",
+  mvz: "",
+  propietario: "",
+  fecha: "",
+  estatus: "",
+  caso: null,
+});
+
+const numeroCasoAsignado = ref("");
+const loadingBuscarHoja = ref(false);
+const loadingAsignar = ref(false);
 
 function normalizar(txt) {
-  return (txt || '').trim().toLowerCase();
+  return (txt || "").trim();
 }
 
-function buscarHoja() {
+async function buscarHoja() {
   errores.value = [];
-  mensajeExito.value = '';
+  mensajeExito.value = "";
   hojaEncontrada.value = false;
-  hojaIdSeleccionada.value = null;
-  datosHoja.value = { folio: '', upp: '', mvz: '', propietario: '', fecha: '', estatus: '' };
+  numeroCasoAsignado.value = "";
+  datosHoja.value = { id_hoja: null, folio: "", id_upp: null, upp: "", mvz: "", propietario: "", fecha: "", estatus: "", caso: null };
 
   const folio = normalizar(nuevoCaso.value.folio);
   if (!folio) {
-    errores.value.push('Debe capturar el folio (número de hoja de control de campo).');
+    errores.value.push("Debe capturar el folio (número de hoja de control de campo).");
     scrollAlContenido();
     return;
   }
 
-  const hoja = hojasDemo.value.find(h => normalizar(h.folio) === folio);
-  if (!hoja) {
-    errores.value.push('No se encontró el folio capturado. Verifique que la hoja exista (registrada por el MVZ).');
+  loadingBuscarHoja.value = true;
+  try {
+    // ✅ Endpoint requerido en backend:
+    // GET /api/hojas/por-folio?folio=...
+    const res = await api.get("/api/hojas/por-folio", { params: { folio } });
+
+    if (!res?.data) {
+      errores.value.push("No se encontró el folio capturado. Verifique que la hoja exista (registrada por el MVZ).");
+      scrollAlContenido();
+      return;
+    }
+
+    const h = res.data;
+
+    hojaEncontrada.value = true;
+    datosHoja.value = {
+      id_hoja: h.id_hoja,
+      folio: h.folio || folio,
+      id_upp: h.id_upp,
+      upp: h.upp || h.clave_upp || "",
+      mvz: h.mvz || "",
+      propietario: h.propietario || "",
+      fecha: h.fecha || "",
+      estatus: h.estatus || "",
+      caso: h.caso || h.numero_caso || null,
+    };
+
+    if (datosHoja.value.caso) {
+      // ya tiene caso asignado en BD
+      numeroCasoAsignado.value = datosHoja.value.caso;
+    }
+
     scrollAlContenido();
-    return;
+  } catch (e) {
+    errores.value.push(
+      e?.response?.data?.detail ||
+      e?.response?.data?.message ||
+      "Error al buscar el folio en el servidor. Verifica que exista el endpoint /api/hojas/por-folio."
+    );
+    scrollAlContenido();
+    console.error(e);
+  } finally {
+    loadingBuscarHoja.value = false;
   }
-
-  hojaEncontrada.value = true;
-  hojaIdSeleccionada.value = hoja.id;
-  datosHoja.value = {
-    folio: hoja.folio,
-    upp: hoja.upp,
-    mvz: hoja.mvz,
-    propietario: hoja.propietario,
-    fecha: hoja.fecha,
-    estatus: hoja.estatus,
-  };
-
-  scrollAlContenido();
 }
 
-/** Genera el siguiente caso demo (BR25-XXX) sin repetir */
-const siguienteCaso = computed(() => {
-  // toma los casos existentes y calcula el siguiente consecutivo
-  const existentes = hojasDemo.value
-    .map(h => h.caso)
-    .filter(Boolean);
-
-  // obtiene el max num de BR25-XXX
-  let max = 0;
-  for (const c of existentes) {
-    const m = String(c).match(/BR25-(\d{3,})/i);
-    if (m) {
-      const n = parseInt(m[1], 10);
-      if (!Number.isNaN(n)) max = Math.max(max, n);
-    }
-  }
-  const nextNum = String(max + 1).padStart(3, '0');
-  return `BR25-${nextNum}`;
-});
-
-function asignarCaso() {
+async function asignarCaso() {
   errores.value = [];
-  mensajeExito.value = '';
+  mensajeExito.value = "";
 
-  if (!hojaEncontrada.value || !hojaIdSeleccionada.value) {
-    errores.value.push('Primero debe buscar y cargar la hoja de control (folio).');
+  if (!hojaEncontrada.value || !datosHoja.value.id_hoja) {
+    errores.value.push("Primero debe buscar y cargar la hoja de control (folio).");
     scrollAlContenido();
     return;
   }
 
-  const hoja = hojasDemo.value.find(h => h.id === hojaIdSeleccionada.value);
-  if (!hoja) {
-    errores.value.push('No se encontró la hoja seleccionada. Intente buscar el folio nuevamente.');
+  if (datosHoja.value.caso) {
+    errores.value.push(`Este folio ya tiene un número de caso asignado: ${datosHoja.value.caso}`);
     scrollAlContenido();
     return;
   }
 
-  // Validación: si ya tiene caso asignado
-  if (hoja.caso) {
-    errores.value.push(`Este folio ya tiene un número de caso asignado: ${hoja.caso}`);
-    scrollAlContenido();
-    return;
-  }
-
-  const casoNuevo = siguienteCaso.value;
-
-  // Validación: no duplicar caso
-  const duplicado = hojasDemo.value.some(h => normalizar(h.caso) === normalizar(casoNuevo));
-  if (duplicado) {
-    errores.value.push('El número de caso generado ya existe. (Demo) Ajuste la lógica del consecutivo.');
-    scrollAlContenido();
-    return;
-  }
-
-  const ok = window.confirm(`¿Desea asignar el número de caso ${casoNuevo} al folio ${hoja.folio}?`);
+  const ok = window.confirm(`¿Desea asignar el número de caso a este folio ${datosHoja.value.folio}?`);
   if (!ok) return;
 
-  hoja.caso = casoNuevo;
-  hoja.estatus = 'Pendiente';
+  loadingAsignar.value = true;
+  try {
+    // ✅ Endpoint requerido en backend:
+    // POST /api/casos/asignar { id_hoja, id_usuario_crea }
+    const payload = {
+      id_hoja: datosHoja.value.id_hoja,
+      id_usuario_crea: 1, // TODO: conectar al login
+    };
 
-  mensajeExito.value = `Número de caso asignado correctamente: ${casoNuevo} (Folio: ${hoja.folio})`;
+    const res = await api.post("/api/casos/asignar", payload);
+    const nc = res?.data?.numero_caso || res?.data?.numeroCaso || "";
 
-  // Mantener folio, pero limpiar vista y forzar recarga si se requiere
-  hojaEncontrada.value = false;
-  hojaIdSeleccionada.value = null;
-  datosHoja.value = { folio: '', upp: '', mvz: '', propietario: '', fecha: '', estatus: '' };
+    if (!nc) {
+      errores.value.push("Se asignó, pero no se recibió 'numero_caso' en la respuesta del servidor.");
+      scrollAlContenido();
+      return;
+    }
 
-  scrollAlContenido();
+    numeroCasoAsignado.value = nc;
+    datosHoja.value.caso = nc;
+    datosHoja.value.estatus = datosHoja.value.estatus || "Pendiente";
+
+    mensajeExito.value = `Número de caso asignado correctamente: ${nc} (Folio: ${datosHoja.value.folio})`;
+
+    scrollAlContenido();
+  } catch (e) {
+    errores.value.push(
+      e?.response?.data?.detail ||
+      e?.response?.data?.message ||
+      "Error al asignar el número de caso. Verifica que exista /api/casos/asignar."
+    );
+    scrollAlContenido();
+    console.error(e);
+  } finally {
+    loadingAsignar.value = false;
+  }
 }
 
 function limpiarFormulario() {
-  nuevoCaso.value = { folio: '' };
+  nuevoCaso.value = { folio: "" };
   hojaEncontrada.value = false;
-  hojaIdSeleccionada.value = null;
-  datosHoja.value = { folio: '', upp: '', mvz: '', propietario: '', fecha: '', estatus: '' };
+  numeroCasoAsignado.value = "";
+  datosHoja.value = { id_hoja: null, folio: "", id_upp: null, upp: "", mvz: "", propietario: "", fecha: "", estatus: "", caso: null };
   errores.value = [];
-  mensajeExito.value = '';
+  mensajeExito.value = "";
 }
 
-const filtros = ref({ folio: '', caso: '', upp: '', mvz: '', fecha: '', estatus: '' });
+// =====================
+// CONSULTAR (BD real)
+// =====================
+const filtros = ref({ folio: "", caso: "", upp: "", mvz: "", fecha: "", estatus: "" });
+const resultados = ref([]);
+const loadingConsulta = ref(false);
 
 function hayAlMenosUnFiltro() {
   const f = filtros.value;
@@ -413,271 +433,108 @@ function hayAlMenosUnFiltro() {
   );
 }
 
-function buscar() {
+async function buscar() {
   mostrarAlerta.value = false;
+  errores.value = [];
+  mensajeExito.value = "";
+  resultados.value = [];
+
   if (!hayAlMenosUnFiltro()) {
     buscado.value = false;
     mostrarAlerta.value = true;
     return;
   }
-  buscado.value = true;
-  scrollAlContenido();
+
+  loadingConsulta.value = true;
+  try {
+    // ✅ Endpoint requerido: GET /api/casos (filtros)
+    const params = {};
+    if (filtros.value.folio.trim()) params.folio = filtros.value.folio.trim();
+    if (filtros.value.caso.trim()) params.caso = filtros.value.caso.trim();
+    if (filtros.value.upp.trim()) params.upp = filtros.value.upp.trim();
+    if (filtros.value.mvz.trim()) params.mvz = filtros.value.mvz.trim();
+    if (filtros.value.fecha) params.fecha = filtros.value.fecha;
+    if (filtros.value.estatus) params.estatus = filtros.value.estatus;
+
+    const res = await api.get("/api/casos", { params });
+    resultados.value = Array.isArray(res.data) ? res.data : [];
+    buscado.value = true;
+    scrollAlContenido();
+  } catch (e) {
+    errores.value.push(
+      e?.response?.data?.detail ||
+      e?.response?.data?.message ||
+      "Error al consultar casos. Verifica que exista el endpoint GET /api/casos."
+    );
+    buscado.value = true;
+    scrollAlContenido();
+    console.error(e);
+  } finally {
+    loadingConsulta.value = false;
+  }
 }
 
 function limpiarFiltros() {
-  filtros.value = { folio: '', caso: '', upp: '', mvz: '', fecha: '', estatus: '' };
+  filtros.value = { folio: "", caso: "", upp: "", mvz: "", fecha: "", estatus: "" };
   buscado.value = false;
   mostrarAlerta.value = false;
 }
-
-const casosFiltrados = computed(() => {
-  if (!buscado.value) return [];
-
-  const f = filtros.value;
-  const folio = f.folio.trim().toLowerCase();
-  const caso = f.caso.trim().toLowerCase();
-  const upp = f.upp.trim().toLowerCase();
-  const mvz = f.mvz.trim().toLowerCase();
-  const fecha = f.fecha;
-  const estatus = f.estatus;
-
-  return hojasDemo.value.filter(c => {
-    const okFolio = folio ? (c.folio || '').toLowerCase().includes(folio) : true;
-    const okCaso = caso ? ((c.caso || '').toLowerCase().includes(caso)) : true;
-    const okUpp = upp ? (c.upp || '').toLowerCase().includes(upp) : true;
-    const okMvz = mvz ? (c.mvz || '').toLowerCase().includes(mvz) : true;
-    const okFec = fecha ? c.fecha === fecha : true;
-    const okEst = estatus ? c.estatus === estatus : true;
-    return okFolio && okCaso && okUpp && okMvz && okFec && okEst;
-  });
-});
 </script>
 
 <style scoped>
-.modulo-acciones {
-  margin-bottom: 20px;
-}
-.modulo-acciones-titulo {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: #333;
-  font-weight: 600;
-}
-.modulo-acciones-botones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.sistpec-btn-accion {
-  border: none;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  border-radius: 3px;
-  cursor: pointer;
-  background: #2f6b32;
-  color: #fff;
-  letter-spacing: 0.5px;
-}
-.sistpec-btn-accion.active {
-  background: #244e26;
-}
+/* 100% tu mismo estilo original */
+.modulo-acciones { margin-bottom: 20px; }
+.modulo-acciones-titulo { display: block; font-size: 14px; margin-bottom: 8px; color: #333; font-weight: 600; }
+.modulo-acciones-botones { display: flex; flex-wrap: wrap; gap: 4px; }
+.sistpec-btn-accion { border: none; padding: 8px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; border-radius: 3px; cursor: pointer; background: #2f6b32; color: #fff; letter-spacing: 0.5px; }
+.sistpec-btn-accion.active { background: #244e26; }
 
-.sistpec-info-box {
-  margin-top: 10px;
-  padding: 10px 14px;
-  border-radius: 4px;
-  background: #e1f3e1;
-  border: 1px solid #c3e6c3;
-}
-.sistpec-info-text {
-  margin: 0;
-  font-size: 13px;
-  color: #225522;
-}
+.sistpec-info-box { margin-top: 10px; padding: 10px 14px; border-radius: 4px; background: #e1f3e1; border: 1px solid #c3e6c3; }
+.sistpec-info-text { margin: 0; font-size: 13px; color: #225522; }
 
-.modulo-contenido {
-  margin-top: 10px;
-}
-.modulo-header {
-  margin-bottom: 12px;
-  text-align: left;
-}
-.modulo-subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: #555;
-}
-.subtitulo {
-  font-size: 18px;
-  margin: 10px 0 15px;
-  color: #333;
-}
+.modulo-contenido { margin-top: 10px; }
+.modulo-header { margin-bottom: 12px; text-align: left; }
+.modulo-subtitle { margin: 0; font-size: 13px; color: #555; }
+.subtitulo { font-size: 18px; margin: 10px 0 15px; color: #333; }
 
-.modulo-alert {
-  margin-bottom: 12px;
-  padding: 10px 14px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-.modulo-alert--error {
-  background: #fbeaea;
-  border: 1px solid #f5c2c2;
-  color: #7a1f1f;
-}
-.modulo-alert--success {
-  background: #e1f3e1;
-  border: 1px solid #c3e6c3;
-  color: #225522;
-}
-.modulo-alert--info {
-  background: #eef4ff;
-  border: 1px solid #c9dcff;
-  color: #1f3f7a;
-}
+.modulo-alert { margin-bottom: 12px; padding: 10px 14px; border-radius: 4px; font-size: 13px; }
+.modulo-alert--error { background: #fbeaea; border: 1px solid #f5c2c2; color: #7a1f1f; }
+.modulo-alert--success { background: #e1f3e1; border: 1px solid #c3e6c3; color: #225522; }
+.modulo-alert--info { background: #eef4ff; border: 1px solid #c9dcff; color: #1f3f7a; }
 
-.sistpec-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.sistpec-form-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-.sistpec-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.sistpec-form-group--actions button {
-  height: 36px;
-}
-.sistpec-form-group label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #444;
-}
-.sistpec-form-group input,
-.sistpec-form-group select {
-  padding: 8px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  outline: none;
-}
-.sistpec-form-group input[readonly] {
-  background: #f6f6f6;
-  color: #444;
-}
-.hint {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #666;
-}
-.sistpec-form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
+.sistpec-form { display: flex; flex-direction: column; gap: 16px; }
+.sistpec-form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sistpec-form-group { display: flex; flex-direction: column; gap: 4px; }
+.sistpec-form-group--actions button { height: 36px; }
+.sistpec-form-group label { font-size: 13px; font-weight: 600; color: #444; }
+.sistpec-form-group input, .sistpec-form-group select { padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; outline: none; }
+.sistpec-form-group input[readonly] { background: #f6f6f6; color: #444; }
+.hint { margin-top: 4px; font-size: 12px; color: #666; }
+.sistpec-form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-.sistpec-btn-primary {
-  background: #2f6b32;
-  color: #fff;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.sistpec-btn-primary:hover {
-  background: #244e26;
-}
-.sistpec-btn-secondary {
-  background: #e0e0e0;
-  color: #333;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.sistpec-btn-secondary:hover {
-  background: #d0d0d0;
-}
+.sistpec-btn-primary { background: #2f6b32; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.sistpec-btn-primary:hover { background: #244e26; }
+.sistpec-btn-secondary { background: #e0e0e0; color: #333; border: none; padding: 8px 18px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.sistpec-btn-secondary:hover { background: #d0d0d0; }
+.sistpec-btn-secondary:disabled, .sistpec-btn-primary:disabled { opacity: .7; cursor: not-allowed; }
 
-.sistpec-search-bar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.sistpec-search-actions {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-  gap: 8px;
-}
+.sistpec-search-bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.sistpec-search-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: flex-end; gap: 8px; }
 
-.sistpec-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-.sistpec-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.sistpec-table thead {
-  background: #7a061e;
-  color: #fff;
-}
-.sistpec-table th,
-.sistpec-table td {
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-.sistpec-table tbody tr:nth-child(even) {
-  background: #fafafa;
-}
-.sin-resultados {
-  text-align: center;
-  color: #777;
-}
+.sistpec-table-wrapper { width: 100%; overflow-x: auto; }
+.sistpec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sistpec-table thead { background: #7a061e; color: #fff; }
+.sistpec-table th, .sistpec-table td { padding: 8px 10px; border: 1px solid #ddd; text-align: left; }
+.sistpec-table tbody tr:nth-child(even) { background: #fafafa; }
+.sin-resultados { text-align: center; color: #777; }
 
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.badge--activo {
-  background: #e1f3e1;
-  color: #225522;
-}
-.badge--proceso {
-  background: #fff4e5;
-  color: #b26a00;
-}
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.badge--activo { background: #e1f3e1; color: #225522; }
+.badge--proceso { background: #fff4e5; color: #b26a00; }
 
 @media (max-width: 768px) {
-  .sistpec-form-row {
-    grid-template-columns: 1fr;
-  }
-  .sistpec-search-bar {
-    grid-template-columns: 1fr;
-  }
-  .sistpec-search-actions {
-    grid-column: auto;
-    justify-content: stretch;
-  }
+  .sistpec-form-row { grid-template-columns: 1fr; }
+  .sistpec-search-bar { grid-template-columns: 1fr; }
+  .sistpec-search-actions { grid-column: auto; justify-content: stretch; }
 }
 </style>
