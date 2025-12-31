@@ -116,7 +116,7 @@
 
         <div class="sistpec-form-row">
           <div class="sistpec-form-group">
-            <label>Domicilio</label>
+            <label>Calle</label>
             <input v-model="formHoja.prop.domicilio" type="text" />
           </div>
 
